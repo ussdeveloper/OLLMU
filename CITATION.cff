@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: "OLLMU: Optical Large Language Model Unit — a concept paper on a passive diffractive ROM with slow-light side loops and interference routing"
+message: Preserve originator credit if you use this concept. Implementation is not restricted.
+type: software
+license: other
+license-url: https://github.com/ussdeveloper/OLLMU/blob/main/LICENSE
+repository-code: https://github.com/ussdeveloper/OLLMU
+authors:
+  - family-names: Anisul
+    given-names: Wałsymzerp
+    alias: Anisul Wałsymzerp
+    website: https://github.com/ussdeveloper/OLLMU
+keywords:
+  - neuromorphic photonics
+  - diffractive neural network
+  - slow light
+  - Kerr nonlinearity
+  - optical ROM
+  - bound state in the continuum
+  - GaN
+abstract: >
+  Concept paper proposing OLLMU, a hybrid optical inference architecture
+  that stores frozen model weights in a three-dimensional diffractive core
+  and routes selected fields into slow-light side loops for delay memory
+  and Kerr-type nonlinearity. The GaN quasi-BIC blue laser is treated as a
+  candidate coherent source, not as a working optical LLM. Claims are
+  labelled Fact, Literature, Hypothesis, or Estimate. Implementation is
+  unrestricted; originator attribution (Anisul Wałsymzerp) must be kept.
+version: 0.1.1
+date-released: "2026-09-07"

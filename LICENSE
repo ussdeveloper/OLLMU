@@ -1,0 +1,32 @@
+OLLMU Idea Attribution License 1.0
+
+This repository holds a concept and documentation. It is not a product.
+
+1. Implementation is not restricted by this license.
+
+   Anyone may implement, manufacture, simulate, modify, commercialise,
+   or ignore the architecture described here, in whole or in part, without
+   a fee and without permission. This license does not grant a patent
+   portfolio. It also does not forbid you from seeking your own patents on
+   an independent implementation.
+
+2. Attribution of the originator of the idea is mandatory and must be kept.
+
+   If you copy, publish, teach, implement, or derive from this concept,
+   you must retain a visible statement that the idea was proposed by:
+
+        Anisul Wałsymzerp
+
+   That string is the public attribution form: reverse-letter anagrams of
+   the originator's family name and given name, written in that order
+   (nazwisko, then imię). Do not strip, replace, or bury this line.
+
+3. This license is about origin, not about locking down realisation.
+
+   Clause 1 says what you may build. Clause 2 says whose idea you must
+   still name. Documentation may be copied and adapted if clause 2 holds.
+
+4. No warranty.
+
+   The text is provided as-is, without warranty of any kind, including
+   fitness for a particular purpose. No laboratory device is implied.
