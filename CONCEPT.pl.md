@@ -2,7 +2,7 @@
 
 Koncepcja pasywnego rdzenia dyfrakcyjnego (optyczny ROM): przetwarzanie w świetle, krótki light cache w wolniejszym ośrodku, SiliconCache i pamięć kontekstu poza kryształem.
 
-Wersja 0.1.2 · wrzesień 2026 · licencja [OLLMU IAL 1.0](LICENSE) (realizacja nieograniczona; zachować autora pomysłu) · pomysł: **Anisul Wałsymzerp** · wersja angielska: [CONCEPT.en.md](CONCEPT.en.md) · cytowania: [REFERENCES.md](REFERENCES.md) · [atrybucja](ATTRIBUTION.md)
+Wersja 0.1.3 · wrzesień 2026 · licencja [OLLMU IAL 1.0](LICENSE) (realizacja nieograniczona; zachować autora pomysłu) · pomysł: **Anisul Wałsymzerp** · wersja angielska: [CONCEPT.en.md](CONCEPT.en.md) · cytowania: [REFERENCES.md](REFERENCES.md) · [atrybucja](ATTRIBUTION.md)
 
 **To nie jest działający układ.** To praca koncepcyjna. Żaden pomiar z tego tekstu nie pochodzi z egzemplarza OLLMU, bo takiego egzemplarza nie ma.
 
@@ -14,7 +14,7 @@ Proponujemy architekturę inferencji o nazwie **OLLMU** (Optical Large Language 
 
 Laser błękitny GaN oparty na quasi-BIC (**Fakt**: Fąs et al., *Nano Letters*, 2026) jest tu **kandydatem na źródło spójne**, nie rdzeniem obliczeniowym. Układ z 2026 roku jest pompowany optycznie, ma rozmiar siatki rzędu \(100 \times 100\,\mu\mathrm{m}\) i nie stanowi adresowalnej matrycy.
 
-Pełny transformer w jednym krysztale nie jest twierdzeniem tej pracy. Uczciwy podział: statyczne bloki FFN i eksperci MoE jako optyczny ROM; uwaga \(QK^{\mathsf{T}}\) jako blok hybrydowy, bo zależy od wejścia. Pętla autoregresyjna (detekcja → ponowne zakodowanie tokena) jest częścią architektury i **nie jest bezenergetyczna**.
+Pełny transformer w jednym krysztale nie jest twierdzeniem tej pracy. Uczciwy podział: statyczne bloki FFN i eksperci MoE jako optyczny ROM; uwaga \(QK^{\mathsf{T}}\) jako blok hybrydowy, bo zależy od wejścia. Pętla autoregresyjna (detekcja → ponowne zakodowanie tokena) jest częścią architektury i **nie jest bezenergetyczna**. Duży klaster cegieł ratuje moc trzema trikami: pasmo C (~1550 nm) w krzemionce, wzmacniacze SOA/EDFA między blokami, regeneracja 3R na SiliconCache — bez udawania, że analogowy SNR jest za darmo.
 
 ---
 
@@ -171,6 +171,26 @@ To jest obciążenie treningu, nie magia materiału. Sieć musi dostać w \(\mat
 
 Rdzeń nie trenuje się w locie, nie jest DRAM-em, nie trzyma 128k tokenów. OLLMU jest ASIC-iem inferencyjnym dla *jednego* zrzutu wag; długi kontekst i nieliniowość są kontraktami z elektroniką, których model ma się nauczyć używać.
 
+### 6.4. Wygaszenie sygnału w dużym klastrze
+
+Duży OLLMU to szereg cegieł (ekspert → ekspert), nie jedna bryła. Światło słabnie. Trzy triki — z etykietami, bez reklamy.
+
+```mermaid
+flowchart LR
+  e1[ExpertROM_1] --> amp[SOA_or_EDFA]
+  amp --> e2[ExpertROM_2]
+  e1 --> si[SiliconCache_3R]
+  si --> e2
+```
+
+**A. Pasmo C, ~1550 nm, krzemionka.** **Literatura:** w czystym rdzeniu krzemionkowym strata rekordowa to 0,1424 dB/km przy 1550 nm (Tamura et al., *JLT* 2018, DOI [10.1109/JLT.2018.2796647](https://doi.org/10.1109/JLT.2018.2796647)). **Oszacowanie** na 30 cm czystego włókna: \(\sim 4\times 10^{-5}\,\mathrm{dB}\) — margines. **To nie jest strata ROM-u.** Wypalony \(\Delta n\), rozpraszanie wokseli, dyfrakcja i defekty fs-lasera dominują nad absorpcją objętościową. Rayleigh \(\propto \lambda^{-4}\): przejście 450 → 1550 nm obniża ten składnik o czynnik \(\sim 140\). **Hipoteza skalowania:** małe chipy / interfejs BIC mogą zostać przy błękicie; **duże cegły klastra** idą na 1550 nm (fused silica). Krzem jako *falowód* jest wtedy przezroczysty; fotodioda przy 1550 nm to Ge lub InGaAs, nie czysty Si.
+
+**B. Wzmacniacze optyczne między cegłami (SOA, EDFA).** **Literatura:** EDFA i SOA podbijają moc bez detekcji. **Hipoteza:** po ekspercie 1 słabe pole wlatuje w wzmacniacz pompowany tanim laserem i wchodzi do eksperta 2 nadal jako światło. **Nie twierdzimy**, że faza i analogowa amplituda wychodzą nietknięte. ASE dokłada szum (współczynnik szumu wzmacniacza, rząd kilku dB); SOA ma chirp (czynnik Henry'ego) i saturację, która zgniata precyzję MAC. To stacja mocy, nie magiczne kopiowanie fotonów.
+
+**C. Regeneracja 3R na SiliconCache.** **Hipoteza, najuczciwsza na analog.** Słabe światło pada na detektor, krzem robi nieliniowość (ReLU itd.), nowy laser strzela w kolejny rdzeń impulsem o pełnej mocy. To klasyczna regeneracja: reamplify / reshape (i ewentualnie retime). Resetuje SNR. Płaci O-E-O: czas, energia, utrata fazy, jeśli nie odtwarzasz I/Q. W architekturze OLLMU ta bocznica *już istnieje* — tu jest też stacją przepompowującą, nie tylko nieliniowością.
+
+**Kolejność użycia (**Hipoteza**):** light cache i 1550 nm tam, gdzie strata jest mała i faza ma zostać; SOA/EDFA między cegłami, gdy jeszcze nie trzeba cyfry; SiliconCache, gdy trzeba nieliniowości albo gdy analogowy SNR padł. Model uczy się tego **przed** zapisem, tak samo jak routingu pamięci.
+
 ---
 
 ## 7. Mapowanie na transformer (uczciwy podział)
@@ -307,13 +327,16 @@ W inferencji geometria już *jest* polityką pamięci. CPU nie wybiera cache za 
 | --- | --- | --- |
 | Źródło | Quasi-BIC GaN (Fąs 2026) | Dziś optycznie pompowane |
 | Prowadzenie widzialne | Si₃N₄, GaN, LN | Nie krzem SOI |
-| Objętość ROM | Szkło / kryształ fs-write albo stos warstw D²NN | Demonstracje małe |
+| Źródło (duża cegła) | DFB / InP, ~1550 nm | Pasmo C; dojrzałe niż matryca BIC |
+| Objętość ROM (klaster) | Fused silica, zapis 1550 nm | Absorpcja włókna ≠ strata ROM |
+| Wzmacniacz między cegłami | SOA, EDFA | ASE, chirp, saturacja |
+| Detekcja przy 1550 nm | Ge / InGaAs | Nie czysty krzem |
 | Light cache | Wolniejszy ośrodek, PhC, dłuższa ścieżka | Krótkie echo, nie KV-cache |
 | SiliconCache | CMOS poza kryształem | Nieliniowość, thinking, takt |
 | Context memory | SRAM/DRAM poza kryształem | Kontekst; model uczy się przed zapisem |
 | Detekcja | Matryca Si / GaN | Faza wymaga interferometru lokalnego |
 
-Niebieskie światło: mniejsza \(\lambda\) zagęszcza woksele, ale rozpraszanie Rayleigha rośnie jak \(\lambda^{-4}\), defekty są droższe, a fotociemnienie szkła jest realnym ryzykiem. **Hipoteza nie przesądza**, że 450 nm jest lepsze niż 1550 nm dla całego OLLMU. Źródło BIC jest błękitne; rdzeń może w przyszłości pracować na innej fali, jeśli pojawi się konwersja — to osobny, kosztowny człon, nie magia.
+Niebieskie światło: mniejsza \(\lambda\) zagęszcza woksele, Rayleigh \(\propto \lambda^{-4}\). **Hipoteza skalowania (§6.4):** BIC GaN jako kandydat na mały interfejs; duże cegły na 1550 nm. Detektor Si nie widzi 1550 nm.
 
 ---
 
@@ -326,6 +349,8 @@ Niebieskie światło: mniejsza \(\lambda\) zagęszcza woksele, ale rozpraszanie 
 - dryf termiczny fazy (szczególnie Kerr cieplny),
 - wibracje i niestabilność interferometrów,
 - szum śrutowy i ADC,
+- ASE i saturacja SOA/EDFA,
+- fotodioda przy 1550 nm (Ge/InGaAs, nie Si),
 - niezgodność bliźniaka z Maxwelllem,
 - starzenie źródła i fotociemnienie.
 
@@ -384,6 +409,7 @@ Rozmowa, z której wyszła koncepcja, pomijała lub zbyt lekko traktowała:
 | 4 | Routing MoE na 2–4 ekspertów optycznych | Interferencyjne gaszenie portu zmierzone | Pełny MoE LLM |
 | 5 | Hybryda: uwaga cyfrowa + FFN optyczne | Latencja i energia *systemu* vs GPU na tym samym FFN | „Zero watów” |
 | 6 | Źródło: od pompy optycznej do elektrycznej matrycy | Osobna linia materiałowa GaN | Wymagane do fazy 5 tylko jeśli SiN+InGaN nie wystarczy |
+| 7 | Pasmo C + SOA między dwiema mini-cegłami | SNR analogowy po wzmacniaczu zmierzony | „Strata jak we włóknie 0,15 dB/km” |
 
 ---
 
@@ -397,13 +423,14 @@ Rozmowa, z której wyszła koncepcja, pomijała lub zbyt lekko traktowała:
 - Że wolne światło zastąpi KV-cache.
 - Że model uczy się *po* wypaleniu kryształu.
 - Że błękitny laser pobije EUV w litografii.
-- Że trening „świadomy przestrzeni” został przeprowadzony.
+- Że 0,15 dB/km włókna podmorskiego to strata wypalonego ROM-u.
+- Że SOA/EDFA kopiują fotony bez szumu i bez zmiany fazy.
 
 ---
 
 ## 17. Wnioski
 
-OLLMU jest **nazwaną hipotezą sprzętową**: processing w świetle, krótki light cache w wolniejszym ośrodku, SiliconCache i pamięć kontekstu poza kryształem. Model uczy się z nich korzystać **zanim** geometria zostanie zapisana; potem kryształ jest ROM. Złożenie w LLM jest otwartym problemem, nie odkryciem.
+OLLMU jest **nazwaną hipotezą sprzętową**: processing w świetle, light cache, SiliconCache i kontekst poza kryształem. Duży klaster: 1550 nm w krzemionce, SOA/EDFA między cegłami, 3R na SiliconCache. Model uczy się tego **zanim** geometria zostanie zapisana. 0,14 dB/km dotyczy włókna, nie wypalonego ROM-u.
 
 Najbardziej uczciwa następna praca to bliźniak z SiliconCache, nie rzeźba frontier modelu.
 

@@ -21,8 +21,9 @@ keywords:
 abstract: >
   Concept paper: processing is optical (diffractive ROM). A light cache in
   a slower medium holds only a short echo. SiliconCache and context memory
-  sit off-crystal. The model is trained to use those memories before the
-  geometry is written into the crystal. Implementation is unrestricted;
-  originator attribution (Anisul Wałsymzerp) must be kept.
-version: 0.1.2
+  sit off-crystal. Large bricks use C-band silica, SOA/EDFA, and 3R
+  regeneration on SiliconCache. Fibre dB/km is not ROM loss. The model is
+  trained before writing. Implementation unrestricted; originator
+  attribution (Anisul Wałsymzerp) must be kept.
+version: 0.1.3
 date-released: "2026-09-07"

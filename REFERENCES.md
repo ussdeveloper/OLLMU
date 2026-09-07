@@ -52,8 +52,12 @@ DOI targets below were resolved against the Crossref API on 2026-09-07 (HTTP 200
 
 18. Z. Cao, H.-J. Du, X.-J. Yuan, et al., “Programmable Three-dimensional Photonic Neural Network Chip,” *Nature Communications* (2026). DOI: [10.1038/s41467-026-72316-9](https://doi.org/10.1038/s41467-026-72316-9). Femtosecond-laser writing in glass; MNIST-class demonstration, not LLM scale.
 
+## Telecom loss and amplifiers (literature)
+
+19. Y. Tamura, H. Sakuma, K. Morita, et al., “The First 0.14-dB/km Loss Optical Fiber and its Impact on Submarine Transmission,” *Journal of Lightwave Technology* **36**, 44–49 (2018). DOI: [10.1109/JLT.2018.2796647](https://doi.org/10.1109/JLT.2018.2796647). Record silica-core fibre loss 0.1424 dB/km at 1550 nm — **not** the loss of a voxelated ROM.
+
 ## Transformer / MoE mapping (literature, software side)
 
-19. A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, I. Polosukhin, “Attention Is All You Need,” *NeurIPS* (2017). [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762).
+20. A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, I. Polosukhin, “Attention Is All You Need,” *NeurIPS* (2017). [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762).
 
-20. W. Fedus, B. Zoph, N. Shazeer, “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity,” *JMLR* (2022). [https://arxiv.org/abs/2101.03961](https://arxiv.org/abs/2101.03961).
+21. W. Fedus, B. Zoph, N. Shazeer, “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity,” *JMLR* (2022). [https://arxiv.org/abs/2101.03961](https://arxiv.org/abs/2101.03961).

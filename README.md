@@ -31,7 +31,8 @@ A frozen-weight inference path in which:
 2. a **light cache** (slower medium / slow light) holds only a short, useful echo,
 3. **SiliconCache** and **context memory** sit off-crystal (nonlinearity, thinking, long state),
 4. the model is trained — **before writing into the crystal** — when and how to use those external memories,
-5. an autoregressive recode loop returns the next token (not free).
+5. a large cluster of bricks uses **C-band (~1550 nm)** silica, **SOA/EDFA** between experts, and **3R regeneration** on SiliconCache (fibre dB/km is not ROM loss),
+6. an autoregressive recode loop returns the next token (not free).
 
 The Polish room-temperature blue quasi-BIC laser (Fąs et al., *Nano Letters*, 2026) is treated as a **candidate source**, after electrical pumping and addressable arrays exist. It is not treated as the compute core.
 

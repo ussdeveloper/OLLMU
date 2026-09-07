@@ -2,7 +2,7 @@
 
 A concept for a passive diffractive core (optical ROM): processing in light, a short light cache in slower media, SiliconCache and context memory off-crystal.
 
-Version 0.1.2 · September 2026 · license [OLLMU IAL 1.0](LICENSE) (implementation unrestricted; keep originator credit) · idea: **Anisul Wałsymzerp** · Polish version: [CONCEPT.pl.md](CONCEPT.pl.md) · citations: [REFERENCES.md](REFERENCES.md) · [attribution](ATTRIBUTION.md)
+Version 0.1.3 · September 2026 · license [OLLMU IAL 1.0](LICENSE) (implementation unrestricted; keep originator credit) · idea: **Anisul Wałsymzerp** · Polish version: [CONCEPT.pl.md](CONCEPT.pl.md) · citations: [REFERENCES.md](REFERENCES.md) · [attribution](ATTRIBUTION.md)
 
 **This is not a working device.** It is a concept paper. No number in this text is a measurement from an OLLMU unit, because no such unit exists.
 
@@ -14,7 +14,7 @@ We propose an inference architecture called **OLLMU** (Optical Large Language Mo
 
 The GaN quasi-BIC blue laser (**Fact**: Fąs et al., *Nano Letters*, 2026) is a **candidate coherent source**, not the compute core. The 2026 device is optically pumped, has a grating footprint of order \(100 \times 100\,\mu\mathrm{m}\), and is not an addressable array.
 
-A full transformer in one crystal is not a claim of this paper. The honest split is: static FFN blocks and MoE experts as optical ROM; attention \(QK^{\mathsf{T}}\) as a hybrid block, because it depends on the input. The autoregressive loop (detection → re-encoding of the next token) is part of the architecture and **is not free**.
+A full transformer in one crystal is not a claim of this paper. The honest split is: static FFN blocks and MoE experts as optical ROM; attention \(QK^{\mathsf{T}}\) as a hybrid block, because it depends on the input. The autoregressive loop (detection → re-encoding of the next token) is part of the architecture and **is not free**. A large brick cluster saves power with three tricks: C-band (~1550 nm) in silica, SOA/EDFA amplifiers between blocks, 3R regeneration on SiliconCache — without pretending analog SNR is free.
 
 ---
 
@@ -171,6 +171,26 @@ That is a training load, not a material miracle. The loss \(\mathcal{L}\) must t
 
 The core does not train on the fly, is not DRAM, and does not hold 128k tokens. OLLMU is an inference ASIC for *one* weight snapshot; long context and nonlinearity are contracts with electronics that the model must learn to call.
 
+### 6.4. Signal fade in a large cluster
+
+A large OLLMU is a chain of bricks (expert → expert), not one boulder. Light weakens. Three tricks — labelled, not advertised.
+
+```mermaid
+flowchart LR
+  e1[ExpertROM_1] --> amp[SOA_or_EDFA]
+  amp --> e2[ExpertROM_2]
+  e1 --> si[SiliconCache_3R]
+  si --> e2
+```
+
+**A. C-band, ~1550 nm, silica.** **Literature:** a pure-silica-core fibre has a record loss of 0.1424 dB/km at 1550 nm (Tamura et al., *JLT* 2018, DOI [10.1109/JLT.2018.2796647](https://doi.org/10.1109/JLT.2018.2796647)). **Estimate** for 30 cm of that fibre: \(\sim 4\times 10^{-5}\,\mathrm{dB}\) — a rounding error. **That is not ROM loss.** Written \(\Delta n\), voxel scatter, diffraction and fs-laser colour centres dominate bulk absorption. Rayleigh \(\propto \lambda^{-4}\): 450 → 1550 nm cuts that term by a factor of \(\sim 140\). **Scaling hypothesis:** small chips / a BIC interface may stay blue; **large cluster bricks** move to 1550 nm (fused silica). Silicon as a *waveguide* is then transparent; a photodiode at 1550 nm is Ge or InGaAs, not plain Si.
+
+**B. Optical amplifiers between bricks (SOA, EDFA).** **Literature:** EDFAs and SOAs raise power without detection. **Hypothesis:** after expert 1 a weak field enters an amplifier pumped by a cheap laser and enters expert 2 still as light. **We do not claim** phase and analog amplitude come out untouched. ASE adds noise (amplifier noise figure, a few dB); an SOA has chirp (Henry factor) and saturation that crush MAC precision. This is a power station, not magic photon copying.
+
+**C. 3R regeneration on SiliconCache.** **Hypothesis, the most honest analog save.** Weak light hits a detector, silicon applies the nonlinearity (ReLU and so on), a new laser fires a full-power pulse into the next core. That is classical regeneration: reamplify / reshape (and optionally retime). It resets SNR. It pays O-E-O: time, energy, loss of phase unless you rebuild I/Q. In OLLMU that side path *already exists* — here it is also a pump station, not only a nonlinearity.
+
+**Order of use (**Hypothesis**):** light cache and 1550 nm where loss is small and phase should survive; SOA/EDFA between bricks while analog still holds; SiliconCache when you need nonlinearity or when analog SNR has died. The model learns that **before** writing, same as memory routing.
+
 ---
 
 ## 7. Mapping onto a transformer (honest split)
@@ -307,13 +327,16 @@ At inference the geometry already *is* the memory policy. A CPU does not pick th
 | --- | --- | --- |
 | Source | GaN quasi-BIC (Fąs 2026) | Today optically pumped |
 | Visible guiding | Si₃N₄, GaN, LN | Not SOI silicon |
-| ROM volume | Glass / crystal fs-write or a D²NN stack | Small demonstrations |
+| Source (large brick) | DFB / InP, ~1550 nm | C-band; more mature than a BIC array |
+| ROM volume (cluster) | Fused silica, written at 1550 nm | Fibre absorption ≠ ROM loss |
+| Inter-brick amplifier | SOA, EDFA | ASE, chirp, saturation |
+| Detection at 1550 nm | Ge / InGaAs | Not plain silicon |
 | Light cache | Slower medium, PhC, longer path | Short echo, not a KV-cache |
 | SiliconCache | CMOS off-crystal | Nonlinearity, thinking, cadence |
 | Context memory | SRAM/DRAM off-crystal | Context; the model learns before writing |
 | Detection | Si / GaN array | Phase needs a local interferometer |
 
-Blue light: smaller \(\lambda\) packs voxels more tightly, but Rayleigh scattering grows as \(\lambda^{-4}\), defects cost more, and glass photodarkening is a real risk. **The hypothesis does not decide** that 450 nm is better than 1550 nm for all of OLLMU. The BIC source is blue; the core might later run at another wavelength if conversion is added — a separate, expensive member, not magic.
+Blue light: smaller \(\lambda\) packs voxels; Rayleigh \(\propto \lambda^{-4}\). **Scaling hypothesis (§6.4):** GaN BIC as a candidate small interface; large bricks at 1550 nm. A Si detector does not see 1550 nm.
 
 ---
 
@@ -326,6 +349,8 @@ Error sources this document admits in advance:
 - thermal phase drift (especially thermal Kerr),
 - vibration and interferometer instability,
 - shot noise and ADC,
+- ASE and SOA/EDFA saturation,
+- the photodiode at 1550 nm (Ge/InGaAs, not Si),
 - twin-versus-Maxwell mismatch,
 - source ageing and photodarkening.
 
@@ -384,6 +409,7 @@ No phase is executed in this repository.
 | 4 | MoE routing onto 2–4 optical experts | Measured interferometric port extinction | A full MoE LLM |
 | 5 | Hybrid: digital attention + optical FFN | *System* latency and energy vs GPU on the same FFN | “Zero watts” |
 | 6 | Source: from optical pump to electrical array | A separate GaN materials line | Required for phase 5 only if SiN+InGaN is not enough |
+| 7 | C-band + SOA between two mini-bricks | Analog SNR after the amplifier, measured | “Loss like 0.15 dB/km fibre” |
 
 ---
 
@@ -397,13 +423,14 @@ No phase is executed in this repository.
 - That slow light replaces a KV-cache.
 - That the model learns *after* the crystal is written.
 - That a blue laser beats EUV in lithography.
-- That space-aware training has been carried out.
+- That 0.15 dB/km of submarine fibre is the loss of a written ROM.
+- That SOA/EDFA copy photons without noise or phase change.
 
 ---
 
 ## 17. Conclusions
 
-OLLMU is a **named hardware hypothesis**: processing in light, a short light cache in a slower medium, SiliconCache and context memory off-crystal. The model learns to use them **before** the geometry is written; afterwards the crystal is ROM. Assembling that into an LLM is an open problem, not a discovery.
+OLLMU is a **named hardware hypothesis**: processing in light, a light cache, SiliconCache and context off-crystal. A large cluster: 1550 nm in silica, SOA/EDFA between bricks, 3R on SiliconCache. The model learns that **before** the geometry is written. 0.14 dB/km is a fibre figure, not written-ROM loss.
 
 The most honest next paper is a twin with SiliconCache, not a sculpture of a frontier model.
 
