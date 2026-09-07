@@ -1,8 +1,8 @@
 # OLLMU: optyczna jednostka modelu językowego
 
-Koncepcja pasywnego rdzenia dyfrakcyjnego (optyczny ROM) z bocznicami wolnego światła, routingiem interferencyjnym i hybrydowym mapowaniem na transformaty.
+Koncepcja pasywnego rdzenia dyfrakcyjnego (optyczny ROM): przetwarzanie w świetle, krótki light cache w wolniejszym ośrodku, SiliconCache i pamięć kontekstu poza kryształem.
 
-Wersja 0.1.1 · wrzesień 2026 · licencja [OLLMU IAL 1.0](LICENSE) (realizacja nieograniczona; zachować autora pomysłu) · pomysł: **Anisul Wałsymzerp** · wersja angielska: [CONCEPT.en.md](CONCEPT.en.md) · cytowania: [REFERENCES.md](REFERENCES.md) · [atrybucja](ATTRIBUTION.md)
+Wersja 0.1.2 · wrzesień 2026 · licencja [OLLMU IAL 1.0](LICENSE) (realizacja nieograniczona; zachować autora pomysłu) · pomysł: **Anisul Wałsymzerp** · wersja angielska: [CONCEPT.en.md](CONCEPT.en.md) · cytowania: [REFERENCES.md](REFERENCES.md) · [atrybucja](ATTRIBUTION.md)
 
 **To nie jest działający układ.** To praca koncepcyjna. Żaden pomiar z tego tekstu nie pochodzi z egzemplarza OLLMU, bo takiego egzemplarza nie ma.
 
@@ -10,7 +10,7 @@ Wersja 0.1.1 · wrzesień 2026 · licencja [OLLMU IAL 1.0](LICENSE) (realizacja 
 
 ## 1. Streszczenie
 
-Proponujemy architekturę inferencji o nazwie **OLLMU** (Optical Large Language Model Unit). Wagi dojrzałego, zamrożonego modelu zapisuje się trwale w trójwymiarowym rdzeniu dyfrakcyjnym. Światło wykonuje liniowe operacje mnożenia i akumulacji (MAC) podczas przelotu. Nieliniowość i pamięć kontekstowa nie są wbudowywane w cały kryształ. Trafiają na **bocznice wolnego światła**, do których pole jest kierowane albo gaszone przez interferencję — zgodnie z tym, czego sieć nauczyła się przed wypaleniem.
+Proponujemy architekturę inferencji o nazwie **OLLMU** (Optical Large Language Model Unit). **Przetwarzanie jest optyczne:** wagi zamrożonego modelu zapisuje się w trójwymiarowym rdzeniu dyfrakcyjnym, a światło wykonuje liniowe MAC podczas przelotu. Sam kryształ już opóźnia falę; różne ośrodki można dobrać tak, by tam, gdzie krótkie echo jest użyteczne, powstał **light cache** (w tym wolne światło). **SiliconCache** (nieliniowość, szybki bufor, pętla thinking) i **pamięć kontekstu** (długi stan rozmowy) siedzą **poza kryształem**. Najważniejsze: model ma być wytrenowany, *kiedy i jak* z tych zewnętrznych pamięci korzystać — routingiem interferencyjnym i portami na krawędzi, bez CPU, który w inferencji decyduje za sieć.
 
 Laser błękitny GaN oparty na quasi-BIC (**Fakt**: Fąs et al., *Nano Letters*, 2026) jest tu **kandydatem na źródło spójne**, nie rdzeniem obliczeniowym. Układ z 2026 roku jest pompowany optycznie, ma rozmiar siatki rzędu \(100 \times 100\,\mu\mathrm{m}\) i nie stanowi adresowalnej matrycy.
 
@@ -37,7 +37,7 @@ Jeśli etykiety brakuje przy liczbie, liczba nie jest wynikiem OLLMU.
 
 Cyfrowe inferowanie dużych modeli językowych jest ograniczone przesyłem danych i ciepłem, nie tylko arytmetyką. **Literatura**: fotoniczne MAC skalują się korzystnie przy dużym \(N\) i niskiej precyzji analogowej, rzędu kilku bitów, a nie FP16 (Nahmias et al., 2020). **Literatura**: sieci dyfrakcyjne D²NN wykonują inferencję pasywnie po cyfrowym treningu (Lin, Ozcan et al., 2018). **Literatura**: siatki interferometrów Macha–Zehndera realizują mnożenie macierzy na chipie krzemowym (Shen et al., 2017). Żadna z tych linii nie dała dotychczas LLM w krysztale.
 
-Luka, którą OLLMU próbuje nazwać, a nie zamknąć: jak połączyć (i) zamrożony, wielkoskalowy operator liniowy w objętości, (ii) rzadką nieliniowość i pamięć na krawędzi, (iii) trening, który uczy model *kiedy* z tej krawędzi korzystać, bez zewnętrznego sterownika w czasie inferencji.
+Luka, którą OLLMU próbuje nazwać, a nie zamknąć: jak połączyć (i) zamrożony operator liniowy w świetle, (ii) krótki optyczny light cache tam, gdzie opóźnienie fali wystarcza, (iii) SiliconCache i pamięć kontekstu poza kryształem, (iv) trening, który uczy model *kiedy* z tych zewnętrznych pamięci korzystać, bez sterownika, który w inferencji zastępuje sieć.
 
 ---
 
@@ -117,40 +117,59 @@ flowchart LR
   tokens[TokenEncoder] --> emitters[EmitterArray]
   emitters --> core[DiffractiveROM]
   core --> ports[OutputPorts]
-  ports --> side[SlowLightLoops]
-  side --> core
+  ports --> lightCache[LightCache]
+  lightCache --> core
+  ports --> siCache[SiliconCache]
+  siCache --> emitters
+  ports --> ctx[ContextMemory]
+  ctx --> emitters
   ports --> recv[ReceiverArray]
   recv --> recode[AutoregressiveRecode]
   recode --> emitters
 ```
 
-**Hipoteza.** Układ ma pięć członów.
+**Hipoteza.** Przetwarzanie siedzi w świetle. Pamięć ma trzy skale czasu. Model uczy się, którą skalę zapalić.
 
-1. **Koder tokenów (hybryda).** Wektor aktywacji (embedding albo stan warstwy) jest mapowany na amplitudy i fazy pola. Na starcie to elektronika + modulatory, nie „LLM w powietrzu”.
+1. **Koder tokenów (hybryda).** Wektor aktywacji jest mapowany na amplitudy i fazy. Na starcie: elektronika + modulatory.
 
-2. **Matryca emisyjna.** Spójne, współbieżne źródła. Kandydat długoterminowy: matryca BIC GaN. Stan na dziś: pojedyncze, optycznie pompowane siatki.
+2. **Matryca emisyjna.** Spójne źródła. Kandydat: matryca BIC GaN. Dziś: optycznie pompowane siatki.
 
-3. **Rdzeń dyfrakcyjny (ROM).** Blok przezroczysty z zapisanym \(n(\mathbf{r})\). Realizuje stały operator liniowy \(W\) na polu. Naturalny ładunek: FFN i eksperci MoE.
+3. **Rdzeń dyfrakcyjny (ROM) — processing.** Zapisane \(n(\mathbf{r})\). Światło liczy stały operator \(W\). Naturalny ładunek: FFN i eksperci MoE. Przelot przez ośrodek *już* jest opóźnieniem \(\tau_{\mathrm{core}} = n L / c\); to nie jest wada, tylko zegar optyczny.
 
-4. **Bocznice wolnego światła.** Porty na krawędzi rdzenia. Światło, które wejdzie, zwalnia, nabiera fazy, może osiągnąć próg Kerra, wraca z opóźnieniem \(\tau\).
+4. **Light cache (w krysztale / na krawędzi optycznej).** Tam, gdzie przyda się *lekkie* opóźnienie — zsynchronizowanie dwóch przebiegów, echo warstwy, złożenie fazy — pole idzie w wolniejszy ośrodek (większe \(n\) albo \(n_g\): wolne światło, inny kryształ, dłuższa ścieżka). To **nie** zastępuje KV-cache ani ReLU. Kerr na tej ścieżce jest opcją, nie wymogiem.
 
-5. **Matryca odbiorcza i pętla recode.** Fotodetektory (i ewentualnie pomiar fazy) dają wektor wyjściowy. Kolejny token wymaga ponownego zakodowania. **To kosztuje energię i czas.**
+5. **SiliconCache (poza kryształem).** Detekcja → szybki cache krzemowy → nieliniowość (ReLU/GELU/mały MLP) i/lub wektor thinking. Wynik wraca na matrycę emisyjną w takcie, którego model się nauczył: albo jako ponowne przetworzenie, albo jako dane dodatkowe.
 
-### 6.1. Routing interferencyjny
+6. **Pamięć kontekstu (poza kryształem).** Długi stan (odpowiednik KV-cache, scratchpad, historia tokenów). SRAM/DRAM albo inny bufor elektroniczny. Światło tam nie mieszka.
 
-**Hipoteza, fizyka legalna.** Dwa ramiona o polach \(E_1\), \(E_2\) w porcie bocznym dają moc
+7. **Matryca odbiorcza i pętla recode.** Kolejny token. **Nie jest za darmo.**
+
+### 6.1. Trzy skale opóźnienia
+
+| Skala | Gdzie | Co trzyma | Rząd czasu (**Oszacowanie**) |
+| --- | --- | --- | --- |
+| Przelot rdzenia | w krysztale | nic poza falą w locie | ps–ns na centymetr |
+| Light cache | wolniejszy ośrodek optyczny | krótkie echo, faza | ps–ns, produkt pasmo–opóźnienie |
+| SiliconCache | krzem poza kryształem | nieliniowość, thinking, alignment taktów | ns–µs |
+| Context memory | krzem poza kryształem | kontekst rozmowy | µs–ms i dłużej, pojemność cyfrowa |
+
+**Literatura.** Różne \(n\) i \(n_g\) zmieniają czas przelotu; to standard optyki, nie nowy efekt. **Hipoteza** dotyczy tylko *użytku*: model traktuje te skale jak narzędzia, nie jak jedną magiczną pamięć.
+
+### 6.2. Routing: model uczy się SiliconCache i kontekstu
+
+**Hipoteza, fizyka legalna.** Porty na krawędzi rdzenia prowadzą do light cache, SiliconCache albo pamięci kontekstu. Dwa ramiona \(E_1\), \(E_2\) dają
 
 \[
-P_{\mathrm{side}} \propto \lvert E_1 + E_2 e^{i\theta} \rvert^2.
+P_{\mathrm{port}} \propto \lvert E_1 + E_2 e^{i\theta} \rvert^2.
 \]
 
-Dla \(\theta = \pi\) i \(\lvert E_1\rvert \approx \lvert E_2\rvert\) port jest ciemny: bocznica wyłączona bez tranzystora. Dla \(\theta = 0\) port jest jasny. Wagi rdzenia — czyli geometria \(n(\mathbf{r})\) — uczą się ustawiać \(\theta\) w zależności od wejścia, bo wejście samo kształtuje \(E_1\) i \(E_2\).
+\(\theta = \pi\) gasi port (pamięć zewnętrzna milczy). \(\theta = 0\) wpycha energię na wybraną ścieżkę. Wagi \(n(\mathbf{r})\) uczą się tego *przed* wypaleniem. W inferencji nie ma osobnego bitu z CPU „użyj cache”.
 
-To nie jest nowa fizyka. Nowy jest **użytek**: model ma traktować gaszenie portu jak bramkę MoE / pominięcie nieliniowości.
+To jest obciążenie treningu, nie magia materiału. Sieć musi dostać w \(\mathcal{L}\) sygnał, że SiliconCache i context memory coś kosztują i coś dają. Inaczej albo nigdy z nich nie skorzysta, albo będzie je palić bez potrzeby.
 
-### 6.2. Czego rdzeń nie robi
+### 6.3. Czego rdzeń nie robi
 
-Rdzeń nie trenuje się w locie, nie aktualizuje wag, nie realizuje dynamicznej uwagi \(QK^{\mathsf{T}}\) bez dodatkowego sprzętu. OLLMU jest ASIC-iem inferencyjnym dla *jednego* zrzutu wag.
+Rdzeń nie trenuje się w locie, nie jest DRAM-em, nie trzyma 128k tokenów. OLLMU jest ASIC-iem inferencyjnym dla *jednego* zrzutu wag; długi kontekst i nieliniowość są kontraktami z elektroniką, których model ma się nauczyć używać.
 
 ---
 
@@ -161,14 +180,16 @@ Rdzeń nie trenuje się w locie, nie aktualizuje wag, nie realizuje dynamicznej 
 | Blok | Czy ROM optyczny wystarczy? | Propozycja OLLMU |
 | --- | --- | --- |
 | Embedding / unembedding | Częściowo (stała macierz) | ROM albo elektronika |
-| FFN | Tak, jeśli nieliniowość na bocznicy | Główny cel optyczny |
-| Ekspert MoE | Tak, jeśli routing = port | Routing interferencyjny |
-| Uwaga \(QK^{\mathsf{T}}\) | Nie: macierz zależy od tokenów | Hybryda elektroniczna lub programowalna fotonika |
-| Softmax | Nie (nieliniowość + normalizacja) | Bocznica albo elektronika |
-| KV-cache | Nie jako objętość stała | Linie opóźniające tylko na krótkie echo; dłuższy kontekst — poza kryształem |
+| FFN (liniowa część) | Tak | Główny processing w świetle |
+| Nieliniowość FFN | Nie w ROM | SiliconCache, poza kryształem |
+| Ekspert MoE | Routing = port | Interferencja na krawędzi |
+| Uwaga \(QK^{\mathsf{T}}\) | Nie: macierz zależy od tokenów | Hybryda; stan w context memory |
+| Softmax | Nie | SiliconCache |
+| KV-cache / kontekst | Nie jako objętość optyczna | Context memory poza kryształem |
+| Krótkie echo / faza | Tak, jeśli \(\tau\) małe | Light cache (wolniejszy ośrodek) |
 | Autoregresja | Nie w jednym przelocie | Pętla recode |
 
-**Hipoteza operacyjna.** Pierwszy użyteczny produkt myślowy to nie pełny konwersacyjny LLM w szkle, tylko akcelerator FFN / MoE dla zamrożonego modelu, z uwagę liczoną obok.
+**Hipoteza operacyjna.** Processing = światło. SiliconCache i context memory = kontrakty zewnętrzne, których sieć uczy się **zanim** \(n(\mathbf{r})\) zostanie zapisane w krysztale. Light cache = krótkie optyczne opóźnienie, nie pamięć rozmowy.
 
 ---
 
@@ -196,40 +217,43 @@ Dla ustalonej długości fali i polaryzacji rdzeń realizuje
 
 gdzie \(W \in \mathbb{C}^{M \times N}\) wynika z \(n(\mathbf{r})\). Wagi cyfrowego FFN trzeba wcisnąć w fizycznie dopuszczalne \(W\) (straty, sprzężenie, zakres \(\Delta n\)). To problem odwrotny, nie kopiowanie macierzy PyTorch do szkła.
 
-### 8.3. Opóźnienie i produkt pasmo–opóźnienie
+### 8.3. Opóźnienie: rdzeń vs light cache vs krzem
+
+Przelot przez rdzeń:
 
 \[
-\tau = \frac{n_g L}{c}.
+\tau_{\mathrm{core}} = \frac{n L}{c}.
 \]
 
-**Literatura.** Nie można jednocześnie mieć dowolnie dużego \(n_g\) i szerokiego pasma. Jeśli tokeny mają być impulsami o czasie \(T_p\), musi być \(\tau\) zsynchronizowane z taktowaniem pętli recode. **Oszacowanie:** \(\tau\) rzędu pikosekund–nanosekund to echo warstwy, nie kontekst 128k tokenów.
+Light cache w wolniejszym ośrodku:
 
-### 8.4. Kerr na bocznicy
+\[
+\tau_{\mathrm{lc}} = \frac{n_g L_{\mathrm{lc}}}{c}.
+\]
+
+**Literatura.** Nie można jednocześnie mieć dowolnie dużego \(n_g\) i szerokiego pasma. **Oszacowanie:** \(\tau_{\mathrm{core}}\) i \(\tau_{\mathrm{lc}}\) to ps–ns — echo i zegar optyczny, nie kontekst 128k. SiliconCache i context memory nie podlegają produktowi pasmo–opóźnienie; ich cena to O-E-O i DRAM.
+
+### 8.4. Kerr na light cache (opcja)
 
 \[
 \Delta\varphi = \frac{2\pi}{\lambda}\, n_2 I\, L_{\mathrm{eff}}(n_g).
 \]
 
-Żeby \(\Delta\varphi\) było rzędu 1 rad, potrzeba albo dużego \(n_2\), albo dużego \(I\), albo dużego \(L_{\mathrm{eff}}\). Slow light pomaga. Dwu-fotonowa absorpcja i ciepło konkurują z czystym Kerrem. Funkcja aktywacji optyczna **nie jest** \(\mathrm{ReLU}(x)=\max(0,x)\) chyba że układ zostanie do tego zaprojektowany i zmierzony.
+Wolniejsze światło podnosi lokalne \(I\) i \(L_{\mathrm{eff}}\). To może być przyjemny efekt uboczny light cache. **Nie** jest to domyślna nieliniowość modelu. ReLU/GELU siedzą w SiliconCache. Kerr ≠ ReLU, chyba że ktoś to zmierzy.
 
 ### 8.5. Gaszenie portu
 
-Niech \(E_{\mathrm{side}} = a(\mathbf{u}_{\mathrm{in}}) + b(\mathbf{u}_{\mathrm{in}})\). Trening ma osiągać \(a \approx -b\) gdy bocznica ma milczeć oraz \(a \approx b\) gdy ma działać. To rzadkie sterowanie energią, nie osobny bit sterujący z CPU.
+Niech \(E_{\mathrm{port}} = a(\mathbf{u}_{\mathrm{in}}) + b(\mathbf{u}_{\mathrm{in}})\). Trening — **przed zapisem** — ma osiągać \(a \approx -b\), gdy SiliconCache, context memory albo light cache mają milczeć, oraz \(a \approx b\), gdy dana pamięć ma działać. To rzadkie sterowanie energią, nie bit z CPU w inferencji.
 
 ### 8.6. Funkcja straty
 
-**Hipoteza.**
+**Hipoteza.** Cała \(\mathcal{L}\) jest liczona na cyfrowym bliźniaku **zanim** \(n(\mathbf{r})\) trafi w kryształ.
 
 \[
-\mathcal{L} = \mathcal{L}_{\mathrm{task}} + \lambda_s \mathbb{E}\bigl[ P_{\mathrm{side}} \cdot \mathbf{1}_{\text{nieliniowość zbędna}} \bigr] + \lambda_{\mathrm{ph}} \mathcal{L}_{\mathrm{physics}} + \lambda_f \mathcal{L}_{\mathrm{fab}}.
+\mathcal{L} = \mathcal{L}_{\mathrm{task}} + \lambda_{\mathrm{si}} \mathbb{E}\bigl[ P_{\mathrm{Si}} \cdot \mathbf{1}_{\text{SiliconCache zbędny}} \bigr] + \lambda_{\mathrm{ctx}} \mathbb{E}\bigl[ P_{\mathrm{ctx}} \cdot \mathbf{1}_{\text{kontekst zbędny}} \bigr] + \lambda_{\mathrm{lc}} \mathbb{E}\bigl[ P_{\mathrm{lc}} \cdot \mathbf{1}_{\text{echo zbędne}} \bigr] + \lambda_{\mathrm{ph}} \mathcal{L}_{\mathrm{physics}} + \lambda_f \mathcal{L}_{\mathrm{fab}}.
 \]
 
-- \(\mathcal{L}_{\mathrm{task}}\) — strata modelu (np. cross-entropy na cyfrowym bliźniaku).
-- Człon \(\lambda_s\) — kara za świecenie w port boczny, gdy zadanie jest liniowo wystarczalne.
-- \(\mathcal{L}_{\mathrm{physics}}\) — zgodność z propagacją i Kerrem, nie z warstwą `Linear` w próżni.
-- \(\mathcal{L}_{\mathrm{fab}}\) — tolerancja na błąd \(\Delta n\), chropowatość, niecentryczność.
-
-Bez bliźniaka „wypalenie frontier modelu w szkle” jest hasłem, nie procedurą.
+Bez bliźniaka, który umie SiliconCache i context memory, „wypalenie modelu w szkle” jest hasłem.
 
 ### 8.7. Precyzja analogowa
 
@@ -243,13 +267,11 @@ Szum śrutowy, dryf fazy, rozpraszanie i błąd zapisu ograniczają \(b\) do **k
 
 ### 8.8. Energia
 
-Niech \(E_{\mathrm{src}}\) będzie energią źródeł na jeden przelot, \(E_{\mathrm{det}}\) detekcji i ADC, \(E_{\mathrm{recode}}\) elektroniki pętli, \(E_{\mathrm{core}} \approx 0\) poza stratą optyczną (którą i tak płacą źródła).
-
 \[
-E_{\mathrm{token}} = E_{\mathrm{src}} + E_{\mathrm{det}} + E_{\mathrm{recode}} + E_{\mathrm{attn, hyb}}.
+E_{\mathrm{token}} = E_{\mathrm{src}} + E_{\mathrm{det}} + E_{\mathrm{Si}} + E_{\mathrm{ctx}} + E_{\mathrm{recode}} + E_{\mathrm{attn, hyb}}.
 \]
 
-**Fakt metodologiczny.** Zero dżuli dotyczy wyłącznie pasywnego operatora \(W\) w szkle. Cały token nie jest za darmo. Porównania z GPU bez \(E_{\mathrm{src}}+E_{\mathrm{det}}+E_{\mathrm{recode}}+E_{\mathrm{attn, hyb}}\) są nieważne. Nahmias et al. podają ramy; ta praca nie podaje liczby „razy GPU”.
+\(E_{\mathrm{core}}\) poza stratą optyczną jest ~0 (stratę i tak płacą źródła). Light cache jest optyczny; SiliconCache i context memory są O-E-O. **Fakt metodologiczny.** Zero dżuli dotyczy wyłącznie pasywnego \(W\) w szkle.
 
 ### 8.9. Objętość i parametry
 
@@ -263,17 +285,19 @@ To **górny sufit dyfrakcyjny**, nie gęstość użyteczna. Sprzężenia krzyżo
 
 ---
 
-## 9. Trening świadomy przestrzeni
+## 9. Trening przed zapisem w krysztale
 
-**Hipoteza procedury.**
+**Hipoteza twarda.** Sieć — w tym routing do SiliconCache, context memory i light cache — uczy się **w całości na cyfrowym bliźniaku, zanim** \(n(\mathbf{r})\) zostanie wypalone. Po zapisie kryształ jest ROM. Nie ma dotrenowania w szkle.
 
-1. Zdefiniować cyfrowy bliźniak: propagator + Kerr na bocznicach + model detektora.
-2. Wytrenować sieć z \(\mathcal{L}\) z §8.6 na zadaniu FFN/MoE (nie od razu na pełnym LLM).
-3. Skwantyzować \(n(\mathbf{r})\) do tego, co umie fs-zapis lub litografia.
-4. Wypalić / wytrawić.
-5. Skalibrować: zmierzyć \(W_{\mathrm{real}}\), dograć elektronikę recode i progi, nie „przetrenować kryształu”.
+Kolejność:
 
-Model ma się nauczyć *ignorować* bocznice przez ciemność interferencyjną, aż wejście ułoży pole tak, by je zapalić. To jest Wasz pomysł routingu; w tej pracy jest zapisany jako cel treningu, nie jako zmierzony mechanizm.
+1. Bliźniak: propagator rdzenia + light cache (\(n\), \(n_g\)) + modele SiliconCache i context memory (detektor, nieliniowość, bufor, takt).
+2. Trening \(\mathcal{L}\) z §8.6. Model uczy się *kiedy* zapalić port krzemowy, *kiedy* sięgnąć po kontekst, *kiedy* wystarczy echo optyczne, *kiedy* nic nie ruszać.
+3. Kwantyzacja \(n(\mathbf{r})\) do tego, co umie fs-zapis / litografia.
+4. Zapis w krysztale. Koniec uczenia wag optycznych.
+5. Kalibracja elektroniki (progi, delay SiliconCache), nie „przetrenowanie kryształu”.
+
+W inferencji geometria już *jest* polityką pamięci. CPU nie wybiera cache za model.
 
 ---
 
@@ -284,7 +308,9 @@ Model ma się nauczyć *ignorować* bocznice przez ciemność interferencyjną, 
 | Źródło | Quasi-BIC GaN (Fąs 2026) | Dziś optycznie pompowane |
 | Prowadzenie widzialne | Si₃N₄, GaN, LN | Nie krzem SOI |
 | Objętość ROM | Szkło / kryształ fs-write albo stos warstw D²NN | Demonstracje małe |
-| Bocznica slow-light | PhC, mikropierścienie, metamateriał | Pasmo vs \(n_g\) |
+| Light cache | Wolniejszy ośrodek, PhC, dłuższa ścieżka | Krótkie echo, nie KV-cache |
+| SiliconCache | CMOS poza kryształem | Nieliniowość, thinking, takt |
+| Context memory | SRAM/DRAM poza kryształem | Kontekst; model uczy się przed zapisem |
 | Detekcja | Matryca Si / GaN | Faza wymaga interferometru lokalnego |
 
 Niebieskie światło: mniejsza \(\lambda\) zagęszcza woksele, ale rozpraszanie Rayleigha rośnie jak \(\lambda^{-4}\), defekty są droższe, a fotociemnienie szkła jest realnym ryzykiem. **Hipoteza nie przesądza**, że 450 nm jest lepsze niż 1550 nm dla całego OLLMU. Źródło BIC jest błękitne; rdzeń może w przyszłości pracować na innej fali, jeśli pojawi się konwersja — to osobny, kosztowny człon, nie magia.
@@ -311,23 +337,23 @@ Bez kalibracji po wypaleniu układ jest rzeźbą, nie akceleratorem.
 
 1. **Pasywne MAC.** Zgodne z D²NN i analizą Nahmiasa: przy dużym \(N\) i niskiej precyzji szkło może być tańsze energetycznie *na sam operator liniowy* niż cyfrowe MAC.
 2. **ROM ma sens biznesowy**, jeśli zrzut frontier modelu żyje miesiącami. Brak dotrenowania nie jest wadą ASIC.
-3. **Slow light** łączy w jednym fizycznym obiekcie opóźnienie i próg nieliniowości — literatura to pokazuje w małej skali.
-4. **Routing interferencyjny** nie łamie fizyki; przenosi MoE na geometrię pola.
-5. **Źródło BIC:** pokojowa temperatura, niski próg optyczny, wąska linia, silna polaryzacja — cechy pożądane *jeśli* powstanie matryca elektryczna.
-6. **Hybryda FFN/uwaga** nie wymaga czekania na pełny optyczny transformer.
+3. **Light cache** wykorzystuje to, że kryształ i tak opóźnia falę; wolniejszy ośrodek tam, gdzie krótkie echo jest użyteczne — nie jako KV-cache.
+4. **Trening przed zapisem:** polityka SiliconCache i kontekstu jest w geometrii ROM, nie w CPU inferencji.
+5. **Źródło BIC:** pokojowa temperatura, niski próg optyczny, wąska linia, silna polaryzacja — *jeśli* powstanie matryca elektryczna.
+6. **Processing w świetle** zostaje; elektronika jest pamięcią i nieliniowością, nie rdzeniem MAC.
 
 ## 13. Argumenty przeciw
 
 1. Laser BIC 2026 nie jest matrycą elektryczną.
-2. Krzem nie prowadzi 450 nm; cały stos materiałowy jest inny niż silicon photonics 1550 nm.
+2. Krzem nie prowadzi 450 nm.
 3. D²NN i fs-PNN są na MNIST / małych sieciach.
-4. Uwaga nie jest ROM-em.
-5. Kerr ≠ ReLU; ciepło psuje fazę.
-6. Pętla token→światło→token zjada zysk rdzenia.
-7. Produkt pasmo–opóźnienie blokuje „pamięć jak KV-cache”.
-8. Bliźniak Maxwella jest drogi i przybliżony.
-9. Gęstość parametrów z §8.9 to sufit, nie plan produkcji.
-10. Brak publikacji łączącej BIC GaN + D²NN + slow-light MoE w jeden LLM — w tym ta praca też tego nie robi, tylko nazywa hipotezę.
+4. Uwaga nie jest ROM-em; context memory to O-E-O.
+5. Kerr na light cache ≠ ReLU.
+6. Pętla token→światło→token i SiliconCache zjadają zysk rdzenia.
+7. Bliźniak musi modelować krzem *i* Maxwella — drogi i przybliżony.
+8. Po zapisie nie ma poprawiania wag optycznych.
+9. Gęstość z §8.9 to sufit, nie plan produkcji.
+10. Brak publikacji, która składa te kawałki w LLM — ta praca też tego nie robi.
 
 ---
 
@@ -335,17 +361,13 @@ Bez kalibracji po wypaleniu układ jest rzeźbą, nie akceleratorem.
 
 Rozmowa, z której wyszła koncepcja, pomijała lub zbyt lekko traktowała:
 
+- SiliconCache i context memory poza kryształem, z treningiem **przed** zapisem,
+- light cache jako krótkie echo, nie jako namiastka KV,
 - pętlę autoregresyjną jako koszt,
 - rozdział FFN / uwagi,
-- MoE jako właściwszy obraz routingu niż „cały LLM myśli w szkle”,
+- MoE jako routing,
 - cyfrowy bliźniak i kalibrację,
-- model błędu,
-- rachunek \(E_{\mathrm{token}}\),
-- produkt pasmo–opóźnienie,
-- ślepotę krzemu na błękit,
-- analogową precyzję,
-- różnicę Kerra elektronowego i cieplnego,
-- mapę faz badawczych zamiast skoku do frontier modelu.
+- model błędu i \(E_{\mathrm{token}}\).
 
 ---
 
@@ -371,8 +393,9 @@ Rozmowa, z której wyszła koncepcja, pomijała lub zbyt lekko traktowała:
 - Że laser Fąsa et al. (2026) jest akceleratorem AI.
 - Że energia inferencji LLM spadnie do ułamka promila GPU.
 - Że pełny frontier model zmieści się w krysztale.
-- Że Kerr na bocznicy jest ReLU.
+- Że Kerr na light cache jest ReLU.
 - Że wolne światło zastąpi KV-cache.
+- Że model uczy się *po* wypaleniu kryształu.
 - Że błękitny laser pobije EUV w litografii.
 - Że trening „świadomy przestrzeni” został przeprowadzony.
 
@@ -380,9 +403,9 @@ Rozmowa, z której wyszła koncepcja, pomijała lub zbyt lekko traktowała:
 
 ## 17. Wnioski
 
-OLLMU jest **nazwaną hipotezą sprzętową**: zamrożony operator liniowy w objętości, rzadka nieliniowość i krótkie echo na bocznicach wolnego światła, routing przez interferencję, hybryda dla uwagi i pętli tokenów. Oparcie w literaturze dotyczy *kawałków* (D²NN, MAC fotoniczne, Kerr, slow light, BIC GaN). Złożenie kawałków w LLM jest otwartym problemem inżynieryjnym, nie odkryciem.
+OLLMU jest **nazwaną hipotezą sprzętową**: processing w świetle, krótki light cache w wolniejszym ośrodku, SiliconCache i pamięć kontekstu poza kryształem. Model uczy się z nich korzystać **zanim** geometria zostanie zapisana; potem kryształ jest ROM. Złożenie w LLM jest otwartym problemem, nie odkryciem.
 
-Najbardziej uczciwa następna praca to bliźniak i mini-FFN, nie rzeźba frontier modelu.
+Najbardziej uczciwa następna praca to bliźniak z SiliconCache, nie rzeźba frontier modelu.
 
 ---
 

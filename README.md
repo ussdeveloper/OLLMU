@@ -27,11 +27,11 @@ Every technical statement in the papers is labelled:
 
 A frozen-weight inference path in which:
 
-1. tokens are encoded onto a coherent emitter array,
-2. a three-dimensional diffractive core implements linear MAC as light propagates (**optical ROM**),
-3. selected ports feed **slow-light side loops** (delay memory + Kerr-type nonlinearity),
-4. the model is trained, before fabrication, to open or close those ports by interference,
-5. an **autoregressive recode loop** returns detected fields as the next token (this loop is not free).
+1. **processing is optical** — a diffractive ROM performs linear MAC in transit,
+2. a **light cache** (slower medium / slow light) holds only a short, useful echo,
+3. **SiliconCache** and **context memory** sit off-crystal (nonlinearity, thinking, long state),
+4. the model is trained — **before writing into the crystal** — when and how to use those external memories,
+5. an autoregressive recode loop returns the next token (not free).
 
 The Polish room-temperature blue quasi-BIC laser (Fąs et al., *Nano Letters*, 2026) is treated as a **candidate source**, after electrical pumping and addressable arrays exist. It is not treated as the compute core.
 
@@ -39,7 +39,7 @@ A full transformer in one crystal is not a near-term claim. The honest split in 
 
 ## Co to jest (PL)
 
-**OLLMU** to koncepcja pasywnego rdzenia dyfrakcyjnego (optyczny ROM wag) z bocznicami wolnego światła i routingiem interferencyjnym. Laser BIC GaN jest kandydatem na źródło, nie dowodem, że optyczny LLM już działa.
+**OLLMU** to koncepcja pasywnego rdzenia dyfrakcyjnego: processing w świetle, light cache na krótkie echo, SiliconCache i pamięć kontekstu poza kryształem. Model uczy się z nich korzystać **zanim** geometria zostanie zapisana.
 
 Licencja **nie dotyczy realizacji** układu. Wymaga zachowania informacji, że pomysł wskazał **Anisul Wałsymzerp**.
 
