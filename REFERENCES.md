@@ -2,7 +2,7 @@
 
 Primary citations used in the OLLMU concept paper. Items are grouped by role. This list is not a claim that any cited work implements OLLMU.
 
-DOI targets below were resolved against the Crossref API on 2026-09-07 (HTTP 200). Prefer `https://doi.org/…` as the stable link.
+DOI targets below were resolved against the Crossref API on 2026-09-07 (HTTP 200). Prefer `https://doi.org/…` as the stable link. Items 24–32, 35, and 36 were resolved against the Crossref API on 2026-10-21 (HTTP 200). Items 33 and 34 are contemporary news reports, checked the same day; they are industrial context, not physics results.
 
 ## GaN quasi-BIC laser (fact)
 
@@ -67,3 +67,37 @@ DOI targets below were resolved against the Crossref API on 2026-09-07 (HTTP 200
 22. M. Horowitz, “Computing's energy problem (and what we can do about it),” *IEEE International Solid-State Circuits Conference Digest of Technical Papers*, 10–14 (2014). DOI: [10.1109/ISSCC.2014.6757323](https://doi.org/10.1109/ISSCC.2014.6757323). Plenary text: a DRAM access is of order 1–2 nJ; DRAM I/O is above 20 pJ/bit. The circulated 45 nm table (Fig. 1.1.9) lists a 32-bit DRAM read at 640 pJ and an 8-bit multiply at 0.2 pJ. Teaching anchor from 2014, not a 2026 HBM measurement. Added to this list 2026-10-21.
 
 23. Taalas, “The path to ubiquitous AI.” Company essay: [https://taalas.com/the-path-to-ubiquitous-ai/](https://taalas.com/the-path-to-ubiquitous-ai/) (checked 2026-10-21). Industrial context only: a model hard-wired into a chip so inference does not haul weights from off-chip memory; Llama 3.1 8B; SRAM kept for KV-cache and LoRA; of order two months from a received model to hardware. Not a photonic device and not evidence that OLLMU exists.
+
+## Hybrid optical front-end (literature)
+
+24. J. Chang, V. Sitzmann, X. Dun, W. Heidrich, G. Wetzstein, “Hybrid optical-electronic convolutional neural networks with optimized diffractive optics for image classification,” *Scientific Reports* **8**, 12324 (2018). DOI: [10.1038/s41598-018-30619-y](https://doi.org/10.1038/s41598-018-30619-y). One optimised diffractive layer in an imaging path, then a digital tail. Grayscale CIFAR-10 prototype. Not an OLLMU measurement.
+
+## Holographic neural networks and correlation (literature)
+
+25. D. Psaltis, D. Brady, X.-G. Gu, S. Lin, “Holography in artificial neural networks,” *Nature* **343**, 325–330 (1990). DOI: [10.1038/343325a0](https://doi.org/10.1038/343325a0). Ancestor: photorefractive holograms between optoelectronic neurons. Not a token-rate update and not OLLMU.
+
+26. D. Psaltis, N. Farhat, “Optical information processing based on an associative-memory model of neural nets with thresholding and feedback,” *Optics Letters* **10**, 98 (1985). DOI: [10.1364/OL.10.000098](https://doi.org/10.1364/OL.10.000098). The threshold and the feedback are nonlinear; in OLLMU they stay electronic.
+
+27. A. Vander Lugt, “Signal detection by complex spatial filtering,” *IEEE Transactions on Information Theory* **10**, 139–145 (1964). DOI: [10.1109/TIT.1964.1053650](https://doi.org/10.1109/TIT.1964.1053650). Crossref records the author as A.V. Lugt. Complex matched filter; the detected power is a similarity score, not a top-k.
+
+## Photorefractive volume holograms (literature)
+
+28. F. H. Mok, “Angle-multiplexed storage of 5000 holograms in lithium niobate,” *Optics Letters* **18**, 915 (1993). DOI: [10.1364/OL.18.000915](https://doi.org/10.1364/OL.18.000915). Up to 5000 holograms in one Fe:LiNbO₃ crystal, angle-multiplexed, with fractal-space multiplexing. Images of 320 × 220 pixels.
+
+29. G. A. Rakuljic, V. Leyva, A. Yariv, “Optical data storage by using orthogonal wavelength-multiplexed volume holograms,” *Optics Letters* **17**, 1471 (1992). DOI: [10.1364/OL.17.001471](https://doi.org/10.1364/OL.17.001471). Wavelength multiplexing in photorefractive crystals, compared with angular multiplexing on crosstalk.
+
+30. H. Lee, X.-G. Gu, D. Psaltis, “Volume holographic interconnections with maximal capacity and minimal cross talk,” *Journal of Applied Physics* **65**, 2191–2194 (1989). DOI: [10.1063/1.342828](https://doi.org/10.1063/1.342828). Crosstalk limits the number of independent volume interconnections.
+
+31. F. H. Mok, G. W. Burr, D. Psaltis, “System metric for holographic memory systems,” *Optics Letters* **21**, 896–898 (1996). DOI: [10.1364/OL.21.000896](https://doi.org/10.1364/OL.21.000896). Defines \(M/\#\). Page range as cited by Buse et al. (1998).
+
+32. K. Buse, A. Adibi, D. Psaltis, “Non-volatile holographic storage in doubly doped lithium niobate crystals,” *Nature* **393**, 665–668 (1998). DOI: [10.1038/31429](https://doi.org/10.1038/31429). Readout usually erases a photorefractive hologram. Two traps (iron and manganese): red readout without erasure if ultraviolet is absent. Up to 32% diffraction efficiency on their crystals. Not an SRAM cycle.
+
+## Holographic storage as industrial context
+
+33. TV Technology, “Holographic Storage Firm InPhase Technologies Shuts Down” (8 February 2010). URL: [https://www.tvtechnology.com/news/holographic-storage-firm-inphase-technologies-shuts-down](https://www.tvtechnology.com/news/holographic-storage-firm-inphase-technologies-shuts-down) (checked 2026-10-21). Contemporary report that the company had gone out of business. Not a neural-network result and not an OLLMU measurement.
+
+34. BizWest, “InPhase files for Chapter 11 bankruptcy” (19 October 2011). URL: [https://bizwest.com/2011/10/19/inphase-files-for-chapter-11-bankruptcy/](https://bizwest.com/2011/10/19/inphase-files-for-chapter-11-bankruptcy/) (checked 2026-10-21). Report of the Chapter 11 filing. Industrial context only.
+
+35. N. Cheriere, J. Chu, G. Brennan, et al., “Holographic Storage for the Cloud: advances and challenges,” *ACM Transactions on Storage* **21**(1), 1–31 (2025). DOI: [10.1145/3708993](https://doi.org/10.1145/3708993). Project HSD at Microsoft Research. The paper reports 1.8× density over the previous state of the art and 14× in its end-to-end energy comparison on a typical workload, and concludes the medium is still far from HDD/SSD: another 1–2 orders of magnitude in media energy efficiency, without losing density. Read refresh is a maintenance operation. Not OLLMU.
+
+36. P. Anderson, E. B. Aranas, Y. Assaf, et al., “Project Silica: Towards Sustainable Cloud Archival Storage in Glass,” *Proceedings of the 29th Symposium on Operating Systems Principles*, 166–181 (2023). DOI: [10.1145/3600006.3613208](https://doi.org/10.1145/3600006.3613208). Femtosecond writing in fused silica, write-once. The paper states lifetimes above 1000 years for the written structures. Readout by polarisation microscopy does not erase the voxel. Cousin of the fs-written ROM (§5.5 of the concept paper), not of a photorefractive patch. Not OLLMU.

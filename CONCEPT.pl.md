@@ -2,7 +2,7 @@
 
 Koncepcja pasywnego rdzenia dyfrakcyjnego (optyczny ROM): wagi zamrożonego operatora liniowego są ośrodkiem, światło liczy MAC w przelocie, a nieliniowość, uwaga i router zostają w elektronice.
 
-Wersja 0.2.0 · październik 2026 · licencja [OLLMU IAL 1.0](LICENSE) (realizacja nieograniczona; zachować publiczną formę autora pomysłu) · pomysł: **Anisul Wałsymzerp** · wersja angielska: [CONCEPT.en.md](CONCEPT.en.md) · cytowania: [REFERENCES.md](REFERENCES.md) · [atrybucja](ATTRIBUTION.md)
+Wersja 0.3.0 · październik 2026 · licencja [OLLMU IAL 1.0](LICENSE) (realizacja nieograniczona; zachować publiczną formę autora pomysłu) · pomysł: **Anisul Wałsymzerp** · wersja angielska: [CONCEPT.en.md](CONCEPT.en.md) · cytowania: [REFERENCES.md](REFERENCES.md) · [atrybucja](ATTRIBUTION.md)
 
 **To nie jest działający układ.** To publiczna praca koncepcyjna. Żaden pomiar z tego tekstu nie pochodzi z egzemplarza OLLMU, bo takiego egzemplarza nie ma. Licencja wymaga podania autora. Nie chroni pomysłu i nie jest zgłoszeniem patentowym: publiczne ujawnienie wchodzi w stan techniki.
 
@@ -17,6 +17,8 @@ Reszta architektury jest tej tezie podporządkowana i jest od niej słabsza. Nie
 Laser błękitny GaN oparty na quasi-BIC (**Fakt**: Fąs et al., *Nano Letters*, 2026) jest **kandydatem na źródło spójne**, nie rdzeniem obliczeniowym. Układ z 2026 roku jest pompowany optycznie, ma rozmiar siatki rzędu \(100 \times 100\,\mu\mathrm{m}\) i nie stanowi adresowalnej matrycy.
 
 Pełny transformer w jednym krysztale nie jest twierdzeniem tej pracy. Uczciwy podział: statyczne części liniowe FFN i macierze ekspertów MoE jako optyczny ROM; uwaga \(QK^{\mathsf{T}}\), softmax i wybór eksperta jako elektronika. Pętla autoregresyjna (detekcja → ponowne zakodowanie tokena) jest częścią architektury i **nie jest bezenergetyczna**. Duży klaster cegieł trzyma moc trzema środkami: pasmo C (~1550 nm) w krzemionce, wzmacniacze SOA/EDFA między blokami, regeneracja 3R na SiliconCache — bez udawania, że analogowy SNR jest za darmo.
+
+Wersja 0.3 (październik 2026) nie cofa tezy o nieruchomych wagach i nie przywraca routingu interferencyjnego. Zawęża obciążenie. Zamrożony liniowy front-end pasuje do strumienia wizyjnego i do cechy w paśmie C przed odbiornikiem lepiej niż do dekodowania czatu: wejście już jest polem, kontekst to ramka albo pakiet, a wagi mają żyć dość długo, żeby w ogóle pytać o amortyzację kryształu (§10). Część wymienna to wolny hologram fotorefrakcyjny na adaptery i sygnatury, nie dotrenowanie ROM-u i nie KV-cache. Korelacja zostaje wynikiem podobieństwa. Top-k zostaje w elektronice. Żadna liczba w §10 nie jest pomiarem OLLMU.
 
 ---
 
@@ -41,7 +43,7 @@ Przy dekodowaniu autoregresyjnym, mały batch, każdy nowy token czyta w praktyc
 
 **Literatura**: fotoniczne MAC skalują się korzystnie przy dużym \(N\) i niskiej precyzji analogowej, rzędu kilku bitów, a nie FP16 (Nahmias et al., 2020). **Literatura**: sieci dyfrakcyjne D²NN wykonują inferencję pasywnie po cyfrowym treningu (Lin, Ozcan et al., 2018). **Literatura**: siatki interferometrów Macha–Zehndera realizują mnożenie macierzy na chipie krzemowym (Shen et al., 2017). Żadna z tych linii nie dała dotychczas LLM w krysztale.
 
-Luka, którą OLLMU próbuje nazwać, a nie zamknąć: które **zamrożone** operatory liniowe warto wypalić, skoro (i) zysk istnieje tylko wtedy, gdy zniknięcie magistrali wag przeżyje koszt światło–prąd–światło, (ii) precyzja analogowa jest rzędu kilku bitów, (iii) zrzutu nie da się dotrenować, gdy model się zestarzeje. Krótki light cache i elektronika poza kryształem są dodatkami do tej tezy, nie jej substytutem.
+Luka, którą OLLMU próbuje nazwać, a nie zamknąć: które **zamrożone** operatory liniowe warto wypalić, skoro (i) zysk istnieje tylko wtedy, gdy zniknięcie magistrali wag przeżyje koszt światło–prąd–światło, (ii) precyzja analogowa jest rzędu kilku bitów, (iii) zrzutu nie da się dotrenować, gdy model się zestarzeje. Krótki light cache i elektronika poza kryształem są dodatkami do tej tezy, nie jej substytutem. Wersja 0.3 nie zmienia tej luki. Pyta, przy jakim strumieniu zamrożenie jest mniej absurdalne: widzenie i cecha w paśmie C, nie czat (§10).
 
 ---
 
@@ -192,7 +194,7 @@ Wersje wcześniejsze tego tekstu opisywały gaszenie portu fazą \(\theta = \pi\
 
 ### 6.3. Czego rdzeń nie robi
 
-Rdzeń nie trenuje się w locie, nie jest DRAM-em, nie trzyma 128k tokenów i nie wybiera ekspertów. OLLMU jest nośnikiem *jednego* zrzutu operatorów liniowych. Długi kontekst, nieliniowość i router są kontraktem z elektroniką. Elektronikę da się później poprawić. \(n(\mathbf{r})\) da się tylko wymienić razem z kryształem.
+Rdzeń nie trenuje się w locie, nie jest DRAM-em, nie trzyma 128k tokenów i nie wybiera ekspertów. OLLMU jest nośnikiem *jednego* zrzutu operatorów liniowych. Długi kontekst, nieliniowość i router są kontraktem z elektroniką. Elektronikę da się później poprawić. \(n(\mathbf{r})\) da się tylko wymienić razem z kryształem. Sąsiad też go nie przepisuje: wolna łatka fotorefrakcyjna, jeśli w ogóle powstanie, siedzi obok ROM-u (§10).
 
 ### 6.4. Wygaszenie sygnału w dużym klastrze
 
@@ -234,6 +236,8 @@ flowchart LR
 | Autoregresja | Nie w jednym przelocie | Pętla recode |
 
 **Hipoteza operacyjna.** Szkło = stałe \(W\), odczytywane światłem zamiast z HBM. Krzem = wszystko, co zależy od bieżącego wejścia albo co ma się dać wymienić bez nowego kryształu: \(\varphi\), router, uwaga, kontekst, ewentualna poprawka niskiego rzędu. Light cache = krótkie optyczne opóźnienie, nie pamięć rozmowy.
+
+**Hipoteza (0.3).** Ten sam podział, inne obciążenie. Pierwsze warstwy wizyjne i korelacja z zamrożonym zestawem sygnatur są bliższe stałemu \(W\) niż uwaga zależna od tokenów. Szczegóły i granice są w §10. Interferencja dalej nie jest routerem.
 
 ---
 
@@ -397,9 +401,93 @@ Nowy model bazowy oznacza nowy kryształ. Poprawka, która mieści się w router
 
 **Oszacowanie żywotności.** Zrzuty frontier wymienia się w skali miesięcy. GPU płaci magistralę wag i tego samego dnia ładuje następny checkpoint. Kryształ magistralę oszczędza i następnego checkpointu nie przyjmie. Cegła jest racjonalna tylko wtedy, gdy użyteczne życie zrzutu jest dłuższe niż czas zapisu, a zaoszczędzona energia transportu zdąży oddać koszt fabrykacji. Ta praca tej nierówności nie pokazuje. Zamrożenie, które przy GPU jest ceną elastyczności, tutaj jest ostrzejsze: nośnik umiera razem z modelem.
 
+**Hipoteza.** Łatka z §10 nie jest wyjątkiem od zdania o braku dotrenowania \(n(\mathbf{r})\). Jest innym ośrodkiem, zapisywanym ekspozycją, na adaptery i sygnatury. Nie przyjmuje następnego checkpointu bazowego i nie jest dotrenowaniem wypalonego \(W\).
+
 ---
 
-## 10. Materiały i fabrykacja
+## 10. Obciążenia, które znoszą zamrożone wagi
+
+Wersja 0.2 zostawia tezę o wagach i oddaje router elektronice. Wersja 0.3 tego podziału nie rusza. Pyta, które obciążenie w ogóle warto zamrażać. Czat token po tokenie jest tu złym klientem: kontekst jest długi, zrzut frontier żyje w skali miesięcy (§9), a każda warstwa płaci światło–prąd–światło (§8.8). **Hipoteza.** Lepszy klient to strumień, który już jest światłem i ma krótki kontekst, a jego model ma stać dłużej niż taki zrzut.
+
+### 10.1. Widzenie i sieć, nie czat
+
+**Literatura.** Demonstracje D²NN (Lin, Ozcan et al., 2018; §5.1) są klasyfikacją obrazu, nie modelem językowym. **Literatura.** Chang, Sitzmann, Dun, Heidrich i Wetzstein (2018) wkładają pierwszą warstwę splotową w tor obrazowania: element dyfrakcyjny zoptymalizowany pod zadanie, potem cyfrowy ogon CNN. W ich modelu światło jest przestrzennie niespójne, jak zwykła scena, i w przybliżeniu monochromatyczne po filtrze widmowym. Prototyp to wykonana maska fazowa i jedna warstwa cyfrowa w pełni połączona, na szarym CIFAR-10. Praca podaje około 30% trafności dla samej warstwy cyfrowej i powyżej 44% dla prototypu. To skala małej klasyfikacji, jedna maska, nie objętościowy ROM i nie LLM. Nie jest pomiarem OLLMU i nie jest wygraną nad GPU.
+
+**Hipoteza (widzenie).** Za obiektywem stoi rdzeń dyfrakcyjny i liczy pierwsze warstwy liniowe (splot, wyciągnięcie cech) w przelocie. Scena jest źródłem. Detekcja jest raz, na końcu stosu liniowego. Jeśli ogon jest cyfrowy, nie ma powrotu z prądu do światła i do drugiego kryształu. Składnik \(E_{\mathrm{recode}}\) z §8.8 przy jednym przebiegu na ramkę nie wchodzi do rachunku. \(N_{\mathrm{conv}}\) nie jest wtedy \(2\,(d + d_{\mathrm{ff}})\) na każdą macierz: jedna detekcja objętości cech zamiast zejścia po każdym \(W\). To jest ten koszt przetwornika, który §8.8 stawia jako próg. Hipoteza nie przelicza progu na nowo i nie podaje nowego \(e_{\mathrm{conv}}\). Literatura cytowana wyżej ma jedną warstwę optyczną. Stos kilku zamrożonych warstw liniowych na jednej detekcji jest już hipotezą OLLMU, nie wynikiem Changa.
+
+**Hipoteza, ograniczenie.** Front-end niespójny (Chang) i stos spójny (D²NN) to dwa różne kontrakty. Scena zasila ten pierwszy bez osobnego kodera. Stos spójny wymaga wpisania obrazu na pole spójne, czyli modulatora, czyli z powrotem ceny wejścia. Filtr widmowy, oświetlenie i lokalny oscylator, jeśli fazę w ogóle się mierzy, nie są zerem w \(E_{\mathrm{src}}\). Nieliniowość, próg i jakikolwiek wybór top-k zostają w elektronice (§6.2). Optyczny front-end nie kasuje cyfrowego ogona.
+
+**Literatura.** Duże cegły OLLMU i tak siedzą w paśmie C, ~1550 nm, bo tam specyfikuje się włókno krzemionkowe (§6.4, Tamura et al.). **Hipoteza (sieć).** Ruch w światłowodzie już jest tym polem. Liniowy prefiltr albo cecha anomalii może powstać na odczepie, zanim pełne O-E-O odda przebieg elektronice. Kontekst jest pakietem albo oknem przebiegu, nie rozmową. Nie ma KV-cache o długości czatu.
+
+**Hipoteza, ograniczenie.** To, co widać w polu przed deszyfracją, jest warstwą fizyczną: widmo, struktura czasowa, polaryzacja, kształt modulacji. Zaszyfrowany ładunek wyższych warstw nie jest hologramem do odczytania. WDM to wiele nośnych w jednym włóknie; jeden zamrożony filtr na jednej długości fali nie jest routerem sieci. Stan przepływu, parser nagłówka i decyzja „czy to alarm” są nieliniowe albo zależne od polityki i zostają w SiliconCache. Jeśli odczep jest dopiero po O-E-O i deszyfracji, premisa „światło jeszcze nie zeszło na detektor” odpada. Sam odczep ma stratę wtrąceniową. Tej straty tu nie szacujemy.
+
+**Hipoteza (dlaczego zamrożenie).** Obciążenie, o które tu chodzi, ma model mały wobec frontier, krótki kontekst (ramka albo pakiet), strumień ciągły, niski budżet opóźnienia i wagi, które mają przeżyć dłużej niż zrzut wymieniany w skali miesięcy (§9). Kryształ amortyzuje się żywotnością tych wag. Nierówność z §9 — życie zrzutu dłuższe niż zapis, a zaoszczędzony transport większy niż fabrykacja — nadal nie jest pokazana. Wersja 0.3 tylko nazywa miejsce, w którym ta nierówność jest mniej oczywiście fałszywa. Model trenowany od nowa co tydzień wpada z powrotem w zarzut z §9. **Hipoteza (precyzja).** Detekcja i wynik anomalii mogą mieścić się w kilku bitach analogowych, czyli w budżecie już nazwanym w §8.7. To nie jest pokazany detektor. To zgodność z budżetem, nie pomiar trafności.
+
+**Hipoteza, ograniczenie.** Zagrożenia się zmieniają, a zamrożony model da się sondować. Część wag musi być wymienna szybciej niż nowy kryształ. Tą częścią nie jest ROM.
+
+### 10.2. Hologram jako wolny most
+
+**Literatura (przodek).** Psaltis, Brady, Gu i Lin (*Nature*, 1990) łączą optoelektroniczne neurony hologramami zapisanymi w kryształach fotorefrakcyjnych. Uczenie jest w tamtej pracy częścią obrazu. OLLMU nie bierze tego obrazu jako aktualizacji w tempie tokena. **Literatura.** Psaltis i Farhat (1985) opisują optyczną realizację pamięci asocjacyjnej, której model ma próg i sprzężenie zwrotne. Próg i pętla są nieliniowe. W podziale z §6 zostają w elektronice. Hologram dostarcza mapy liniowej.
+
+**Literatura (korelacja).** Vander Lugt (1964) pokazuje, jak w układzie spójnym zrealizować ogólny zespolony filtr przestrzenny do detekcji znanego sygnału. Filtr dopasowany do zapisanego wzorca \(s\) daje na wyjściu korelację wejścia \(u\) z \(s\). Mierzona moc jest kwadratem modułu tej korelacji. \(\star\) oznacza korelację:
+
+\[
+c(\mathbf{x}) = (u \star s)(\mathbf{x}), \qquad P(\mathbf{x}) = \lvert c(\mathbf{x}) \rvert^2.
+\]
+
+Przy zerowym przesunięciu \(P(0)\) jest proporcjonalne do \(\lvert \langle s, u \rangle \rvert^2\). To ten sam obiekt co moc portu w §8.5.
+
+**Hipoteza.** To jest optyczny stopień podobieństwa: zapytanie wobec zapisanych wzorców, sygnatura wobec odczepu, albo odpowiednik wyniku \(QK^{\mathsf{T}}\) liczonego na jednym zestawie zapisanym z góry. Zostaje to zgodne z wersją 0.2. \(P\) jest stałą formą kwadratową, miękkim dopasowaniem, nie wyborem. \(\arg\max\), próg i top-k są nieliniowe i liczy je router elektroniczny. Jasna plamka korelacji nie przywraca routingu interferencyjnego (§6.2). Uwaga, której klucze zmieniają się razem z kontekstem, zostaje przypadkiem z §7 i zostaje w elektronice. Hologram trzyma tylko zestaw stały.
+
+**Literatura (zapis wymienny).** W Fe:LiNbO₃ Mok (1993) zapisał do 5000 hologramów obrazów 320 × 220 pikseli w jednym krysztale, multipleksowanych kątowo; do poszerzenia pasma użył też multipleksowania fraktalno-przestrzennego (fractal-space multiplexing). **Literatura.** Multipleksowanie długością fali w krysztale fotorefrakcyjnym jest osobną osią (Rakuljic, Leyva, Yariv, 1992), zestawioną tam z osią kątową właśnie pod kątem przesłuchu. **Literatura.** Lee, Gu i Psaltis (1989) pokazują, że przesłuch sprzężeń objętościowych ogranicza liczbę niezależnych połączeń. **Literatura.** \(M/\#\) (Mok, Burr, Psaltis, 1996) jest ich stałą systemu. Przy równym podziale zakresu dynamicznego sprawność dyfrakcyjna każdego z \(M\) hologramów wynosi
+
+\[
+\eta(M) = \left(\frac{M/\#}{M}\right)^2.
+\]
+
+**Literatura (ścieranie).** Buse, Adibi i Psaltis (1998): odczyt jednorodnym światłem zwykle kasuje hologram fotorefrakcyjny i podbija światło rozproszone. Utrwalanie termiczne i elektryczne dało demonstratory laboratoryjne z praktycznymi wadami. Ich odpowiedź to LiNbO₃ z dwiema pułapkami (żelazo i mangan): zapis przy ultrafiolecie, odczyt światłem czerwonym bez ścierania, o ile ultrafioletu przy odczycie nie ma. Zostaje kasowanie optyczne ultrafioletem. Na ich kryształach sprawność dyfrakcyjna sięga 32%. To nie jest cykl zapisu SRAM i nie jest pojemnością OLLMU.
+
+**Hipoteza (rola w OLLMU).** Obok wypalonego ROM-u stoi objętość fotorefrakcyjna jako wolna łatka: adaptery liniowe i sygnatury, które wolno wymienić ekspozycją, bez nowego kryształu bazowego. Zapis jest ekspozycją, która przesuwa ładunek, nie cyklem pamięci. Dlatego łatka jest narzędziem na czas sygnatury albo adaptera, nie na czas tokena. Odświeżenie albo utrwalenie jest częścią kontraktu. Bez niego odczyt kasuje wagi, które miały być stacjonarne. Jeśli sygnatura starzeje się szybciej niż cykl ekspozycji i utrwalenia, wymiana zostaje w SRAM SiliconCache, a hologram tej sygnatury nie bierze.
+
+**Literatura (kontekst przemysłowy, nie pomiar).** Firma InPhase Technologies zajmowała się pamięcią holograficzną. Współczesna relacja: w lutym 2010 firma już nie działała (TV Technology, 8 lutego 2010); wniosek o upadłość w trybie Chapter 11 opisuje relacja z 2011 roku (BizWest, 19 października 2011). To nie jest sieć neuronowa i ta praca nie traktuje tamtego nośnika jako zmierzonego medium OLLMU. **Literatura.** Project HSD w Microsoft Research (Cheriere et al., 2025) pyta, czy pamięć holograficzna ma sens w chmurze. Autorzy podają 1,8× gęstości wobec poprzedniego stanu sztuki, na częściach z półki, z uczeniem maszynowym od szumu, oraz 14× wobec poprzedniego podejścia w ich modelu energii końca-do-końca, na typowym obciążeniu, bez oddania pojemności. Wniosek autorów: wciąż daleko do gęstości, skalowania pojemności i energii HDD albo SSD; ośrodek potrzebuje jeszcze 1–2 rzędów wielkości w sprawności energetycznej, bez utraty gęstości. Odświeżanie przy odczycie jest u nich operacją utrzymaniową. **Literatura.** Project Silica (Anderson et al., SOSP 2023) to inna gałąź: trwały zapis femtosekundowy w stopionej krzemionce, nośnik jednokrotnego zapisu (WORM). Praca podaje czas życia zapisanych struktur powyżej 1000 lat. Odczyt jest mikroskopią polaryzacyjną, a światło odczytu woksela nie kasuje. To kuzyn §5.5 (Davis, chip fs-PNN), czyli kuzyn zamrożonego ROM-u, nie łatki fotorefrakcyjnej. Żaden z tych trzech wątków nie jest egzemplarzem OLLMU.
+
+### 10.3. Hierarchia pamięci
+
+**Hipoteza.** Trzy nośniki, trzy prędkości zapisu. To nie jest piąta skala opóźnienia z §6.1. Light cache zostaje krótkim echem. Hierarchia mówi, kogo wolno przepisać.
+
+```mermaid
+flowchart TB
+  rom[DiffractiveROM_frozenWeights]
+  holo[PhotorefractiveHologram_slowPatch]
+  si[SiliconCache_SRAM_router]
+  rom --> holo
+  holo --> si
+```
+
+**Hipoteza.** W przebiegu sygnału pole może przejść ROM, potem łatkę, i zejść raz do krzemu. Strzałka nie znaczy, że łatka jest obowiązkowa w każdym takcie, ani że każdy foton odwiedza wszystkie trzy stopnie. Porządek na rysunku jest porządkiem zapisu: od najwolniejszego do najszybszego.
+
+| Nośnik | Co trzyma | Zapis | Czego nie trzyma |
+| --- | --- | --- | --- |
+| ROM dyfrakcyjny, wypalony | główne wagi liniowe | nowy kryształ | łatek, kontekstu, top-k |
+| Hologram fotorefrakcyjny | wolne łatki, sygnatury, korelację | ekspozycja, potem utrwalenie albo odświeżenie | KV-cache, routera |
+| SiliconCache, SRAM i router | szybki kontekst ramki albo pakietu, nieliniowość, top-k | cykl elektroniczny | dużego zamrożonego \(W\) |
+
+**Hipoteza.** ROM jest stacjonarny, jak w wersji 0.2. Mała poprawka po stronie krzemu z §9 zostaje w krzemie. Hologram jej nie zastępuje i nie jest ścieżką LoRA. Jest wolnym stopniem optycznym dla łatki, której warto poświęcić ekspozycję: adaptera albo sygnatury, które mają spotkać pole przed tą jedną detekcją. \(\arg\max\) i router do hologramu się nie przeprowadzają.
+
+### 10.4. Czego łatka nie zrobi
+
+Poniższe punkty są granicą hipotezy. Nie są wynikiem.
+
+- Zapis fotorefrakcyjny jest ekspozycją. Ta praca nie ma czasu zapisu w milisekundach i go nie wymyśla.
+- Odczyt kasuje hologram, dopóki nie ma utrwalenia albo odświeżenia (Buse et al.).
+- Przesłuch i \(M/\#\) tną liczbę niezależnych stron. To nie jest pojemność na zrzut frontier.
+- Kilka bitów to budżet z §8.7, nie zmierzona trafność detektora.
+- Korelacja nie wybiera top-k.
+- To nie jest konwersacyjny KV-cache. Fazy 8 i 9 (§16) to sprawdzian tej granicy, nie skrót do modelu językowego. Fazy 1–4 dalej bramkują cokolwiek, co ma wyglądać jak warstwa języka (§8.9).
+
+---
+
+## 11. Materiały i fabrykacja
 
 | Rola | Kandydat | Uwaga |
 | --- | --- | --- |
@@ -412,13 +500,14 @@ Nowy model bazowy oznacza nowy kryształ. Poprawka, która mieści się w router
 | Light cache | Wolniejszy ośrodek, PhC, dłuższa ścieżka | Krótkie echo, nie KV-cache |
 | SiliconCache | CMOS poza kryształem | Nieliniowość, router, thinking, takt |
 | Context memory | SRAM/DRAM poza kryształem | Kontekst; da się wymienić bez nowego szkła |
+| Łatka wolna | hologram objętościowy, Fe:LiNbO₃ | Ekspozycja; ścieranie przy odczycie; \(M/\#\); nie KV-cache (§10) |
 | Detekcja | Matryca Si / GaN | Faza wymaga interferometru lokalnego |
 
 Niebieskie światło: mniejsza \(\lambda\) zagęszcza woksele, Rayleigh \(\propto \lambda^{-4}\). **Hipoteza skalowania (§6.4):** BIC GaN jako kandydat na mały interfejs; duże cegły na 1550 nm. Detektor Si nie widzi 1550 nm.
 
 ---
 
-## 11. Model błędu
+## 12. Model błędu
 
 Źródła błędu, które dokumentacja uznaje z góry:
 
@@ -431,13 +520,15 @@ Niebieskie światło: mniejsza \(\lambda\) zagęszcza woksele, Rayleigh \(\propt
 - fotodioda przy 1550 nm (Ge/InGaAs, nie Si),
 - niezgodność bliźniaka z Maxwelllem,
 - starzenie źródła i fotociemnienie,
-- starzenie *modelu*: zrzut w szkle nie przyjmuje następnego checkpointu (§9).
+- starzenie *modelu*: zrzut w szkle nie przyjmuje następnego checkpointu (§9),
+- ścieranie hologramu fotorefrakcyjnego przy odczycie, dopóki nie ma utrwalenia albo odświeżenia (§10),
+- przesłuch i podział zakresu dynamicznego (\(M/\#\)) przy wielu stronach w jednej objętości (§10).
 
 Bez kalibracji po wypaleniu układ jest rzeźbą, nie akceleratorem. Kalibracja poprawia elektronikę i progi. Nie przepisuje \(n(\mathbf{r})\).
 
 ---
 
-## 12. Argumenty za
+## 13. Argumenty za
 
 1. **Wagi się nie ruszają.** To jest teza tej pracy. Przy dekodowaniu token po tokenie GPU czyta zestaw wag na każdy token, a arytmetyka jest przy tym tania (§3, §8.8). Wypalenie \(W\) w krysztale zdejmuje ten odczyt z magistrali. W cyfrowym krzemie ten sam ruch robi Taalas; cytujemy to jako kontekst, nie jako wynik OLLMU.
 2. **Pasywne MAC są warunkiem z literatury, nie wynikiem.** Zgodnie z D²NN i z Nahmiasem szkło może być tańsze energetycznie na sam operator liniowy przy dużym \(N\) i precyzji rzędu kilku bitów. Warunek konieczny, żeby to przeżyło, stoi w §8.8: \(e_{\mathrm{conv}}\) i \(E_{\mathrm{src}}\) muszą zmieścić się pod progiem.
@@ -445,8 +536,10 @@ Bez kalibracji po wypaleniu układ jest rzeźbą, nie akceleratorem. Kalibracja 
 4. **Podział nośników.** Szkło trzyma to, co ma być duże i stałe. Krzem trzyma to, co zależy od wejścia albo co ma zostać wymienne: nieliniowość, router, uwagę, kontekst, małą poprawkę.
 5. **Źródło BIC:** pokojowa temperatura, niski próg optyczny, wąska linia, silna polaryzacja — *jeśli* powstanie matryca elektryczna.
 6. **Granica jest nazwana.** Faza 1 ma policzyć jedną warstwę, szum i energię na token, zanim ktokolwiek mówi o modelu.
+7. **Strumień zamiast czatu.** Wejście wizyjne już jest polem, a ruch w paśmie C już jest we włóknie. Jedno zejście na końcu liniowego front-endu omija pętlę recode i zejście po każdej macierzy, czyli koszt, który §8.8 dopiero nazywa (§10). To hipoteza o miejscu tezy, nie pomiar.
+8. **Wolna łatka obok ROM-u.** Adapter i sygnatura, które żyją dłużej niż token i krócej niż kryształ, mają kandydata w hologramie fotorefrakcyjnym. Bazowe \(W\) zostaje zamrożone. Sygnatura szybsza niż ekspozycja zostaje w SRAM.
 
-## 13. Argumenty przeciw
+## 14. Argumenty przeciw
 
 1. Laser BIC 2026 nie jest matrycą elektryczną.
 2. Krzem nie prowadzi 450 nm.
@@ -459,24 +552,29 @@ Bez kalibracji po wypaleniu układ jest rzeźbą, nie akceleratorem. Kalibracja 
 9. Wypalony zrzut starzeje się w miesiącach i nie przyjmuje następnego checkpointu. GPU, które wagi wozi, przynajmniej potrafi je wymienić. Tu ta sama sztywność jest ostrzejsza (§9).
 10. Bliźniak musi modelować krzem, przetwornik i Maxwella — drogi i przybliżony.
 11. Brak publikacji, która składa te kawałki w LLM. Ta praca też tego nie robi.
+12. Zamrożony detektor da się sondować, a zagrożenia nie stoją w miejscu. Łatka jest wolna: ekspozycja, ścieranie, \(M/\#\). Nie łapie tygodniowego checkpointu frontier ani KV-cache (§10).
+13. Hybrydowy front-end optyczny jest literaturą na małej klasyfikacji (Chang et al.). Nie jest kamerą bezpieczeństwa ani parserem pakietów. Pole przed deszyfracją nie zawiera ładunku wyższych warstw.
+14. Korelacja jest wynikiem podobieństwa. Nazwanie najjaśniejszej plamki decyzją przenosi \(\arg\max\) z powrotem do elektroniki. Hologram nie wskrzesza routingu interferencyjnego (§6.2).
 
 ---
 
-## 14. Granica wersji 0.2
+## 15. Granica wersji 0.2 i 0.3
 
-Wersja 0.1 stawiała routing interferencyjny jako sposób, w jaki geometria sama wybiera pamięć i ekspertów. Stały ośrodek liniowy tego nie umie; twierdzenie odpada (§6.2). Teza, która zostaje, jest węższa: zamrożony operator liniowy nie ściąga wag z pamięci przy każdym tokenie. Nieliniowość, uwaga i wybór eksperta zostają w elektronice, a ich koszt jest otwarty (§8.8). Żywotność zrzutu jest argumentem przeciw, nie za (§9, §13).
+Wersja 0.1 stawiała routing interferencyjny jako sposób, w jaki geometria sama wybiera pamięć i ekspertów. Stały ośrodek liniowy tego nie umie; twierdzenie odpada (§6.2). Teza, która zostaje, jest węższa: zamrożony operator liniowy nie ściąga wag z pamięci przy każdym tokenie. Nieliniowość, uwaga i wybór eksperta zostają w elektronice, a ich koszt jest otwarty (§8.8). Żywotność zrzutu jest argumentem przeciw, nie za (§9, §14).
+
+Wersja 0.3 (październik 2026) nie cofa granicy 0.2. Interferencja dalej nie jest routerem (§6.2). Bilans §8.8 dalej jest progiem, nie wygraną. Żywotność zrzutu frontier dalej jest argumentem przeciw czatowi (§9, §14). Nowość jest węższa: obciążenie, przy którym zamrożenie jest mniej absurdalne, to strumień wizyjny i cecha w paśmie C, a część wymienna to wolny hologram fotorefrakcyjny na adaptery i sygnatury (§10). Korelacja zostaje wynikiem liniowym. Top-k zostaje w elektronice. Żadna liczba w §10 nie jest pomiarem OLLMU.
 
 ---
 
-## 15. Fazy badawcze
+## 16. Fazy badawcze
 
 Żadna faza nie jest wykonana w tym repozytorium. Repozytorium jest publiczną dokumentacją i nie zawiera symulatora.
 
-Następny artefakt, który da się pokazać albo złożyć jako notę, to faza 1: mały różniczkowalny symulator, nie kryształ i nie model frontier.
+Następny artefakt, który da się pokazać albo złożyć jako notę, to faza 1: mały różniczkowalny symulator, nie kryształ i nie model frontier. Fazy 8 i 9 sprawdzają zwrot wersji 0.3 (front-end wizyjny, cykl łatki). Nie wchodzą przed fazę 1 i nie znaczą, że faza 1 przeszła.
 
 | Faza | Cel | Kryterium sukcesu | Co nie jest sukcesem |
 | --- | --- | --- | --- |
-| 0 | Ten dokument | Etykiety Fakt/Hipoteza; teza o wagach na wierzchu; router opisany jako elektronika | „Mamy optyczny LLM” |
+| 0 | Ten dokument | Etykiety Fakt/Hipoteza; teza o wagach na wierzchu; router opisany jako elektronika; obciążenie 0.3 i hologram opisane jako wolny wynik, nie jako router | „Mamy optyczny LLM” |
 | 1 | Różniczkowalny symulator jednej warstwy FFN: \(W_1\), \(\varphi\), \(W_2\), szum analogowy, bilans \(E_{\mathrm{token}}\) | Kod; błąd MAC względem NumPy przy nazwanym SNR; \(E_{\mathrm{token}}\) przy nazwanych \(e_{\mathrm{bit}}\), \(e_{\mathrm{conv}}\), \(E_{\mathrm{src}}\) | Układ, skala GPT, werdykt że O-E-O wygrywa z GPU |
 | 2 | Zabawkowa klasyfikacja (jak D²NN) | Trafność bliska cyfrowej przy kilku bitach SNR | Język naturalny |
 | 3 | Ta sama warstwa przy szerokości 64–256 | Krzywa błędu od szerokości i od SNR | Transformer |
@@ -484,10 +582,12 @@ Następny artefakt, który da się pokazać albo złożyć jako notę, to faza 1
 | 5 | Hybryda: uwaga cyfrowa + FFN optyczne | Energia *systemu* wobec odczytu wag na tym samym FFN | „Zero watów” |
 | 6 | Źródło: od pompy optycznej do elektrycznej matrycy | Osobna linia materiałowa GaN | Wymagane do fazy 5 tylko jeśli SiN+InGaN nie wystarczy |
 | 7 | Pasmo C + SOA między dwiema mini-cegłami | SNR analogowy po wzmacniaczu zmierzony, w tym kumulacja bez 3R | „Strata jak we włóknie 0,15 dB/km” |
+| 8 | Optyczny front-end małego klasyfikatora wizyjnego wobec cyfrowej linii bazowej | Na nazwanym małym zbiorze obrazów front-end plus cyfrowy ogon mieści się w nazwanej z góry luce trafności wobec w pełni cyfrowej linii o tym samym ogonie; stos optyczny liczony jako jedna detekcja na końcu, a ta liczba zestawiona z zejściem po każdej macierzy | Czat, werdykt że O-E-O bije GPU, utożsamienie optyki niespójnej ze spójnym D²NN |
+| 9 | Łatka fotorefrakcyjna: zapis, odczyt, odświeżenie albo utrwalenie | Jedna nazwana łatka (mały adapter albo kilka sygnatur) zostaje zapisana, odczytana jako mapa liniowa albo wynik korelacji i odświeżona albo utrwalona, zanim ścieranie spadnie poniżej wierności nazwanej z góry | KV-cache w tempie tokena, top-k w hologramie, przepisanie wypalonego ROM-u |
 
 ---
 
-## 16. Czego nie twierdzimy
+## 17. Czego nie twierdzimy
 
 - Że OLLMU istnieje w laboratorium.
 - Że laser Fąsa et al. (2026) jest akceleratorem AI.
@@ -503,11 +603,18 @@ Następny artefakt, który da się pokazać albo złożyć jako notę, to faza 1
 - Że błękitny laser pobije EUV w litografii.
 - Że 0,15 dB/km włókna podmorskiego to strata wypalonego ROM-u.
 - Że SOA/EDFA kopiują fotony bez szumu i bez zmiany fazy.
+- Że wersja 0.3 robi z OLLMU konkurenta czatu.
+- Że front-end dyfrakcyjny kasuje cyfrowy ogon albo że scena zeruje \(E_{\mathrm{src}}\) w stosie spójnym.
+- Że kilka bitów wystarcza na detekcję albo na wynik anomalii. To hipoteza zgodna z §8.7, nie pomiar.
+- Że hologram fotorefrakcyjny jest szybkim KV-cache albo aktualizacją wag w tempie tokena.
+- Że plamka korelacji jest wyborem top-k.
+- Że InPhase, Project HSD albo Project Silica jest OLLMU, wygraną energetyczną albo przepisem na łatkę.
+- Że zamrożony model bezpieczeństwa zostaje bezpieczny wobec kogoś, kto może go sondować.
 - Że licencja daje prawo wyłączne. To atrybucja. Publiczne ujawnienie przed zgłoszeniem odbiera nowość w systemie europejskim (art. 54 Konwencji o patencie europejskim). To informacja o ujawnieniu, nie opinia prawna.
 
 ---
 
-## 17. Wnioski
+## 18. Wnioski
 
 OLLMU jest **nazwaną hipotezą o nośniku wag**. Przy dekodowaniu token po tokenie drogie jest wożenie wag, nie samo mnożenie. Wypalenie stałego \(W\) w szkle zdejmuje to wożenie z magistrali. W krzemie ten sam ruch jest już robiony na sztywno zapisanym modelu; szkło jest inną fizyką tego samego skrótu, nie skrótem darmowym.
 
@@ -515,8 +622,10 @@ Reszta jest warunkiem, pod którym teza przeżywa. Nieliniowość, uwaga i route
 
 Najbardziej uczciwa następna praca to faza 1: różniczkowalny symulator jednej warstwy FFN, z szumem i z bilansem energii na token przy nazwanych założeniach. Dopiero taka nota ma co pokazać. Rzeźba modelu frontier nie ma.
 
+Wersja 0.3 nie przenosi tej tezy na czat. Przenosi pytanie na strumień, którego wejście już jest światłem, a kontekst jest krótki: ramka albo pakiet w paśmie, w którym i tak stoi klaster. Wymienność, której wypalony ROM nie ma, jest albo wolną łatką holograficzną, z utrwaleniem i z limitem \(M/\#\), albo zostaje w krzemie. Fazy 8 i 9 sprawdzają front-end i cykl łatki. Nie zastępują pomiaru, którego ta praca nie ma.
+
 ---
 
-## 18. Cytowania
+## 19. Cytowania
 
-Pełna lista z DOI (pozycje 1–21 sprawdzone w Crossref 2026-09-07; Horowitz i Taalas dopisane 2026-10-21): [REFERENCES.md](REFERENCES.md). Kluczowe: Fąs et al. 2026; Lin/Ozcan 2018; Shen 2017; Nahmias 2020; Horowitz 2014; Taalas (kontekst przemysłowy); Baba 2008; Vaswani 2017; Fedus 2022.
+Pełna lista z DOI (pozycje 1–21 sprawdzone w Crossref 2026-09-07; Horowitz, Taalas i pozycje 24–36 dopisane 2026-10-21; pozycje 33–34 to relacje prasowe, bez DOI): [REFERENCES.md](REFERENCES.md). Kluczowe: Fąs et al. 2026; Lin/Ozcan 2018; Shen 2017; Nahmias 2020; Horowitz 2014; Taalas (kontekst przemysłowy); Chang 2018; Psaltis 1990; Vander Lugt 1964; Mok 1993; Buse 1998; Baba 2008; Vaswani 2017; Fedus 2022.

@@ -38,11 +38,15 @@ Around that claim, the honest split is:
 
 The papers give a rough energy balance per token (§8.8). It is a threshold under named assumptions, not a win over a GPU. A burned snapshot cannot be fine-tuned, and frontier snapshots move on a scale of months.
 
+Version 0.3 (October 2026) keeps that split and names a better customer than chat. Real-time vision and in-line network features already travel as light. A diffractive front-end can take the first linear layers in flight and pay one detection at the end, which is the converter pile §8.8 counts per layer and per token. A photorefractive hologram is only a slow patch — adapters and threat signatures — beside the frozen ROM. Correlation is a similarity score. Top-k stays in the electronic router. The patch is not a KV-cache, and a frozen detector can still be probed. Section 10 of the papers states the limits. No number there is an OLLMU measurement.
+
 The Polish room-temperature blue quasi-BIC laser (Fąs et al., *Nano Letters*, 2026) is treated as a **candidate source**, after electrical pumping and addressable arrays exist. It is not treated as the compute core.
 
 ## Co to jest (PL)
 
 **OLLMU** to publiczna koncepcja nośnika wag: zamrożony operator liniowy siedzi w szkle, światło liczy MAC w przelocie, a nieliniowość, uwaga i router zostają w elektronice. Zysk istnieje tylko wtedy, gdy zniknięcie magistrali wag przeżyje koszt przetworników. Bilans w pracy jest progiem, nie pomiarem.
+
+Wersja 0.3 nie zmienia tego podziału. Lepszy klient niż czat to strumień wizyjny i cecha sieciowa w paśmie C: wejście już jest światłem, a wolna łatka holograficzna trzyma adaptery i sygnatury, nie KV-cache. Korelacja jest wynikiem podobieństwa. Top-k zostaje w routerze elektronicznym.
 
 Licencja **nie ogranicza realizacji** i **nie chroni pomysłu**. Wymaga zachowania publicznej formy autora: **Anisul Wałsymzerp**.
 
@@ -62,4 +66,4 @@ See [CITATION.cff](CITATION.cff) and [ATTRIBUTION.md](ATTRIBUTION.md). Public re
 
 ## Scope of this repo
 
-Public documentation. No simulator and no hardware description language in this repository. The next artifact is the phase-1 differentiable simulator described in the papers: one FFN layer, analog noise, and energy per token.
+Public documentation. No simulator and no hardware description language in this repository. The next artifact is the phase-1 differentiable simulator described in the papers: one FFN layer, analog noise, and energy per token. Phases 8 and 9 check the vision front-end and the photorefractive patch. They do not replace phase 1, and this repository still has no simulator.
