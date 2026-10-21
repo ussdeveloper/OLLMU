@@ -18,6 +18,9 @@ keywords:
   - memory wall
   - bound state in the continuum
   - GaN
+  - optical front-end
+  - photorefractive hologram
+  - holographic correlator
 abstract: >
   Public concept paper. In token-by-token decoding the expensive part is
   moving weights, not the multiply. OLLMU writes a frozen linear operator
@@ -27,6 +30,12 @@ abstract: >
   conversion. The energy section is a threshold under named assumptions, not
   a measured win over a GPU. A burned snapshot cannot be fine-tuned.
   Implementation unrestricted; public originator credit (Anisul Wałsymzerp)
-  must be kept. The license does not protect the idea.
-version: 0.2.0
+  must be kept. The license does not protect the idea. Version 0.3 keeps
+  that split and narrows the workload to real-time vision and C-band network
+  features: the input is already a field and the context is a frame or a
+  packet. A photorefractive hologram is a slow patch for adapters and
+  signatures, not a fine-tune of the ROM and not a KV-cache. A correlation
+  peak is a score; top-k stays electronic. No figure in that chapter is an
+  OLLMU measurement.
+version: 0.3.0
 date-released: "2026-10-21"

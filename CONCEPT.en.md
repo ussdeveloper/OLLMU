@@ -2,7 +2,7 @@
 
 A concept for a passive diffractive core (optical ROM): the weights of a frozen linear operator are the medium, light computes the MAC in transit, and nonlinearity, attention, and the router stay in electronics.
 
-Version 0.2.0 · October 2026 · license [OLLMU IAL 1.0](LICENSE) (implementation unrestricted; keep the public form of the originator credit) · idea: **Anisul Wałsymzerp** · Polish version: [CONCEPT.pl.md](CONCEPT.pl.md) · citations: [REFERENCES.md](REFERENCES.md) · [attribution](ATTRIBUTION.md)
+Version 0.3.0 · October 2026 · license [OLLMU IAL 1.0](LICENSE) (implementation unrestricted; keep the public form of the originator credit) · idea: **Anisul Wałsymzerp** · Polish version: [CONCEPT.pl.md](CONCEPT.pl.md) · citations: [REFERENCES.md](REFERENCES.md) · [attribution](ATTRIBUTION.md)
 
 **This is not a working device.** It is a public concept paper. No number in this text is a measurement from an OLLMU unit, because no such unit exists. The license requires attribution. It does not protect the idea and it is not a patent filing: public disclosure enters the state of the art.
 
@@ -17,6 +17,8 @@ Everything else in the architecture is subordinate to that claim, and weaker tha
 The GaN quasi-BIC blue laser (**Fact**: Fąs et al., *Nano Letters*, 2026) is a **candidate coherent source**, not the compute core. The 2026 device is optically pumped, has a grating footprint of order \(100 \times 100\,\mu\mathrm{m}\), and is not an addressable array.
 
 A full transformer in one crystal is not a claim of this paper. The honest split is: the static linear parts of FFNs, and the matrices of MoE experts, as optical ROM; attention \(QK^{\mathsf{T}}\), softmax, and expert choice as electronics. The autoregressive loop (detection → re-encoding of the next token) is part of the architecture and **is not free**. A large brick cluster holds power with three measures: C-band (~1550 nm) in silica, SOA/EDFA amplifiers between blocks, 3R regeneration on SiliconCache — without pretending analog SNR is free.
+
+Version 0.3 (October 2026) does not withdraw the stationary-weight claim and does not bring back interferometric routing. It narrows the workload. A frozen linear front-end fits a vision stream, and a C-band feature in front of a receiver, better than it fits chat decoding: the input is already a field, the context is a frame or a packet, and the weights are supposed to live long enough that amortising a crystal is even a question (§10). The replaceable part is a slow photorefractive hologram for adapters and signatures, not a fine-tune of the ROM and not a KV-cache. Correlation stays a similarity score. Top-k stays in electronics. No number in §10 is an OLLMU measurement.
 
 ---
 
@@ -41,7 +43,7 @@ In autoregressive decoding, at small batch, each new token reads essentially the
 
 **Literature**: photonic MACs scale favourably at large \(N\) and low analog precision, on the order of a few bits, not FP16 (Nahmias et al., 2020). **Literature**: diffractive deep neural networks (D²NN) perform inference passively after digital training (Lin, Ozcan et al., 2018). **Literature**: Mach–Zehnder meshes implement matrix multiplication on silicon photonic chips (Shen et al., 2017). None of these lines has produced an LLM in a crystal.
 
-The gap OLLMU tries to *name*, not close, is which **frozen** linear operators are worth writing, given that (i) a gain exists only if the disappearance of the weight bus survives the light–current–light cost, (ii) analog precision is a few bits, (iii) the snapshot cannot be fine-tuned when the model ages. A short light cache and the electronics off-crystal are annexes to that claim, not substitutes for it.
+The gap OLLMU tries to *name*, not close, is which **frozen** linear operators are worth writing, given that (i) a gain exists only if the disappearance of the weight bus survives the light–current–light cost, (ii) analog precision is a few bits, (iii) the snapshot cannot be fine-tuned when the model ages. A short light cache and the electronics off-crystal are annexes to that claim, not substitutes for it. Version 0.3 does not change that gap. It asks on which stream a freeze is less absurd: vision and a C-band feature, not chat (§10).
 
 ---
 
@@ -192,7 +194,7 @@ Earlier drafts of this text described extinguishing a port with phase \(\theta =
 
 ### 6.3. What the core does not do
 
-The core does not train on the fly, is not DRAM, does not hold 128k tokens, and does not choose experts. OLLMU is a carrier for *one* snapshot of linear operators. Long context, nonlinearity, and the router are a contract with electronics. The electronics can be corrected later. \(n(\mathbf{r})\) can only be replaced together with the crystal.
+The core does not train on the fly, is not DRAM, does not hold 128k tokens, and does not choose experts. OLLMU is a carrier for *one* snapshot of linear operators. Long context, nonlinearity, and the router are a contract with electronics. The electronics can be corrected later. \(n(\mathbf{r})\) can only be replaced together with the crystal. A neighbour does not rewrite it either: a slow photorefractive patch, if one is ever built, sits beside the ROM (§10).
 
 ### 6.4. Signal fade in a large cluster
 
@@ -234,6 +236,8 @@ flowchart LR
 | Autoregression | Not in a single pass | Recode loop |
 
 **Working hypothesis.** Glass = a fixed \(W\), read by light instead of from HBM. Silicon = everything that depends on the current input, or that should stay replaceable: \(\varphi\), the router, attention, context, a possible low-rank correction. Light cache = a short optical delay, not conversation memory.
+
+**Hypothesis (0.3).** The same split, a different workload. The first vision layers, and a correlation against a frozen set of signatures, are closer to a fixed \(W\) than token-dependent attention. The detail and the limits are in §10. Interference is still not a router.
 
 ---
 
@@ -397,9 +401,93 @@ A new base model means a new crystal. A correction that fits in the router, or i
 
 **Estimate, lifetime.** Frontier snapshots are replaced on a scale of months. A GPU pays the weight bus and can load the next checkpoint the same day. The crystal saves the bus and will not accept the next checkpoint. A brick is rational only while the useful life of the snapshot exceeds the write time, and the transport energy saved has time to repay fabrication. This paper does not show that inequality. The freeze that, on a GPU, is the price of flexibility is sharper here: the carrier dies with the model.
 
+**Hypothesis.** The patch in §10 is not an exception to the sentence that \(n(\mathbf{r})\) is not fine-tuned. It is a different medium, written by an exposure, for adapters and signatures. It does not accept the next base checkpoint and it is not a fine-tune of the burned \(W\).
+
 ---
 
-## 10. Materials and fabrication
+## 10. Workloads that tolerate frozen weights
+
+Version 0.2 keeps the claim about weights and gives the router to electronics. Version 0.3 does not move that split. It asks which workload is worth freezing at all. Token-by-token chat is a bad customer here: the context is long, a frontier snapshot lives on a scale of months (§9), and every layer pays light–current–light (§8.8). **Hypothesis.** A better customer is a stream that is already light and has a short context, and whose model is supposed to stand for longer than such a snapshot.
+
+### 10.1. Vision and the network, not chat
+
+**Literature.** The D²NN demonstrations (Lin, Ozcan et al., 2018; §5.1) are image classification, not a language model. **Literature.** Chang, Sitzmann, Dun, Heidrich, and Wetzstein (2018) place the first convolutional layer in the imaging path: a diffractive element optimised for the task, then a digital CNN tail. In their imaging model the light is spatially incoherent, as in an ordinary scene, and approximately monochromatic after a spectral filter. The prototype is a fabricated phase mask plus one digital fully connected layer, on grayscale CIFAR-10. The paper reports about 30% accuracy for that digital layer alone and above 44% for the prototype. That is small-classification scale, one mask, not a volumetric ROM and not an LLM. It is not an OLLMU measurement and it is not a win over a GPU.
+
+**Hypothesis (vision).** A diffractive core sits behind the lens and computes the first linear layers (convolution, feature extraction) in flight. The scene is the source. Detection happens once, at the end of the linear stack. If the tail is digital, there is no return from current to light and into a second crystal. The term \(E_{\mathrm{recode}}\) from §8.8 does not enter the account on a single pass per frame. \(N_{\mathrm{conv}}\) is then not \(2\,(d + d_{\mathrm{ff}})\) per matrix: one detection of the feature volume, not a drop after every \(W\). That is the converter cost §8.8 names as a threshold. The hypothesis does not recompute the threshold and does not supply a new \(e_{\mathrm{conv}}\). The literature cited above has one optical layer. A stack of several frozen linear layers on a single detection is already an OLLMU hypothesis, not a result of Chang et al.
+
+**Hypothesis, limitation.** The incoherent front-end (Chang) and the coherent stack (D²NN) are two different contracts. The scene feeds the first without a separate encoder. A coherent stack needs the image written onto a coherent field, which is a modulator, which is the entrance cost again. A spectral filter, the illumination, and a local oscillator if phase is measured at all, are not zero inside \(E_{\mathrm{src}}\). Nonlinearity, a threshold, and any top-k stay in electronics (§6.2). An optical front-end does not delete the digital tail.
+
+**Literature.** Large OLLMU bricks already sit in the C-band, ~1550 nm, because that is where silica fibre is specified (§6.4, Tamura et al.). **Hypothesis (network).** Traffic in the fibre is already that field. A linear pre-filter, or an anomaly feature, can be formed on a tap before a full O-E-O hands the waveform to electronics. The context is a packet or a waveform window, not a conversation. There is no chat-length KV-cache.
+
+**Hypothesis, limitation.** What is visible in the field before decryption is the physical layer: spectrum, timing, polarisation, the shape of the modulation. An encrypted payload of the higher layers is not a hologram to be read. WDM is many carriers in one fibre; one frozen filter on one wavelength is not a network router. Flow state, a header parser, and the decision “is this an alarm” are nonlinear or policy-dependent and stay in SiliconCache. If the tap is only after O-E-O and decryption, the premise that the light has not yet hit a detector is gone. The tap itself has an insertion loss. This paper does not estimate that loss.
+
+**Hypothesis (why a freeze).** The workload meant here has a model that is small beside a frontier model, a short context (a frame or a packet), a continuous stream, a low latency budget, and weights that are supposed to outlive a snapshot replaced on a scale of months (§9). The crystal is amortised by the life of those weights. The inequality in §9 — snapshot life longer than the write, and transport saved larger than fabrication — is still not shown. Version 0.3 only names the place where that inequality is less obviously false. A model retrained every week falls back into the objection of §9. **Hypothesis (precision).** Detection and an anomaly score can live inside a few analog bits, the budget already named in §8.7. This is not a detector this paper has shown. It is a match to the budget, not a measured accuracy.
+
+**Hypothesis, limitation.** Threats move, and a frozen model can be probed. Some of the weights have to be replaceable faster than a new crystal. That part is not the ROM.
+
+### 10.2. A hologram as the slow bridge
+
+**Literature (ancestor).** Psaltis, Brady, Gu, and Lin (*Nature*, 1990) connect optoelectronic neurons by holograms written in photorefractive crystals. Learning, in that paper, is part of the picture. OLLMU does not take that picture as an update at token rate. **Literature.** Psaltis and Farhat (1985) describe an optical realisation of an associative memory whose model has a threshold and feedback. The threshold and the loop are nonlinear. In the split of §6 they stay in electronics. The hologram supplies the linear map.
+
+**Literature (correlation).** Vander Lugt (1964) shows how to realise a general complex spatial filter in a coherent system, for detection of a known signal. A filter matched to a stored pattern \(s\) produces, at the output, the correlation of the input \(u\) with \(s\). The detected power is the squared modulus of that correlation. \(\star\) denotes correlation:
+
+\[
+c(\mathbf{x}) = (u \star s)(\mathbf{x}), \qquad P(\mathbf{x}) = \lvert c(\mathbf{x}) \rvert^2.
+\]
+
+At zero shift, \(P(0)\) is proportional to \(\lvert \langle s, u \rangle \rvert^2\). That is the same object as the port power in §8.5.
+
+**Hypothesis.** This is an optical similarity stage: a query against stored patterns, a signature against a tap, or a counterpart of a \(QK^{\mathsf{T}}\) score computed against one set written in advance. It stays consistent with version 0.2. \(P\) is a fixed quadratic form, a soft match, not a choice. \(\arg\max\), a threshold, and top-k are nonlinear, and the electronic router computes them. A bright correlation spot does not bring back interferometric routing (§6.2). Attention whose keys change with the context remains the case of §7 and stays in electronics. The hologram holds only the fixed set.
+
+**Literature (a rewritable record).** In Fe:LiNbO₃, Mok (1993) stored as many as 5000 holograms of 320 × 220 pixel images in one crystal, angle-multiplexed; fractal-space multiplexing was also used to widen the band. **Literature.** Wavelength multiplexing in a photorefractive crystal is a second axis (Rakuljic, Leyva, Yariv, 1992), set there against angular multiplexing specifically on crosstalk. **Literature.** Lee, Gu, and Psaltis (1989) show that crosstalk of volume interconnections limits the number of independent connections. **Literature.** The \(M/\#\) (Mok, Burr, Psaltis, 1996) is the system constant they define. With the dynamic range shared equally, the diffraction efficiency of each of \(M\) holograms is
+
+\[
+\eta(M) = \left(\frac{M/\#}{M}\right)^2.
+\]
+
+**Literature (erasure).** Buse, Adibi, and Psaltis (1998): readout with uniform light usually erases a photorefractive hologram and amplifies scattered light. Thermal and electrical fixing had produced laboratory demonstrators with practical drawbacks. Their answer is LiNbO₃ with two traps (iron and manganese): recording under ultraviolet, readout in red light without erasure, provided the ultraviolet is absent at readout. Optical erasure with ultraviolet remains. On their crystals the diffraction efficiency reaches 32%. This is not an SRAM write cycle and it is not an OLLMU capacity.
+
+**Hypothesis (role in OLLMU).** Beside the burned ROM sits a photorefractive volume as a slow patch: linear adapters and signatures that may be replaced by an exposure, without a new base crystal. Writing is an exposure that moves charge, not a memory cycle. The patch is therefore a tool on the time scale of a signature or an adapter, not on the time scale of a token. Refresh or fixing is part of the contract. Without it, readout erases the weights that were supposed to be stationary. If a signature ages faster than the exposure-and-fix cycle, the update stays in SiliconCache SRAM, and the hologram does not take that signature.
+
+**Literature (industrial context, not a measurement).** InPhase Technologies was working on holographic storage. Contemporary report: by February 2010 the company was no longer operating (TV Technology, 8 February 2010); a 2011 report describes the Chapter 11 filing (BizWest, 19 October 2011). That is not a neural network, and this paper does not treat that medium as a measured OLLMU carrier. **Literature.** Project HSD at Microsoft Research (Cheriere et al., 2025) asks whether holographic storage makes sense in the cloud. The authors report 1.8× the density of the previous state of the art, on commodity parts, with machine learning against the noise, and 14× over the previous approach in their end-to-end energy model, on a typical workload, without giving up capacity. The authors’ conclusion: still far from the density, capacity scaling, and energy of an HDD or an SSD; the medium needs another 1–2 orders of magnitude in energy efficiency, without losing density. Read refresh is a maintenance operation there. **Literature.** Project Silica (Anderson et al., SOSP 2023) is a different branch: permanent femtosecond writing in fused silica, a write-once medium (WORM). The paper states a lifetime above 1000 years for the written structures. Readout is polarisation microscopy, and the read light does not erase the voxel. This is a cousin of §5.5 (Davis, the fs-PNN chip), that is, a cousin of the frozen ROM, not of the photorefractive patch. None of the three is an OLLMU unit.
+
+### 10.3. Memory hierarchy
+
+**Hypothesis.** Three carriers, three write speeds. This is not a fifth delay scale from §6.1. The light cache remains a short echo. The hierarchy says who may be rewritten.
+
+```mermaid
+flowchart TB
+  rom[DiffractiveROM_frozenWeights]
+  holo[PhotorefractiveHologram_slowPatch]
+  si[SiliconCache_SRAM_router]
+  rom --> holo
+  holo --> si
+```
+
+**Hypothesis.** On the signal path the field may pass the ROM, then the patch, and drop once into silicon. The arrow does not mean the patch is mandatory on every beat, or that every photon visits all three stages. The order on the drawing is the order of writing: from the slowest to the fastest.
+
+| Carrier | What it holds | Write | What it does not hold |
+| --- | --- | --- | --- |
+| Diffractive ROM, burned | the main linear weights | a new crystal | patches, context, top-k |
+| Photorefractive hologram | slow patches, signatures, the correlation | an exposure, then fixing or a refresh | a KV-cache, the router |
+| SiliconCache, SRAM and the router | fast context of a frame or a packet, nonlinearity, top-k | an electronic cycle | the large frozen \(W\) |
+
+**Hypothesis.** The ROM is stationary, as in version 0.2. The small silicon correction of §9 stays in silicon. The hologram does not replace it, and it is not a LoRA path. It is the slow optical stage for a patch that is worth an exposure: an adapter or a signature that should meet the field before that one detection. \(\arg\max\) and the router do not move into the hologram.
+
+### 10.4. What the patch will not do
+
+The points below are the boundary of the hypothesis. They are not a result.
+
+- Photorefractive writing is an exposure. This paper has no write time in milliseconds and does not invent one.
+- Readout erases the hologram until there is fixing or a refresh (Buse et al.).
+- Crosstalk and \(M/\#\) cut the number of independent pages. That is not a capacity for a frontier snapshot.
+- A few bits is the budget from §8.7, not a measured detector accuracy.
+- The correlation does not choose top-k.
+- This is not a conversational KV-cache. Phases 8 and 9 (§16) are the check on this boundary, not a shortcut to a language model. Phases 1–4 still gate anything that is supposed to look like a language layer (§8.9).
+
+---
+
+## 11. Materials and fabrication
 
 | Role | Candidate | Note |
 | --- | --- | --- |
@@ -412,13 +500,14 @@ A new base model means a new crystal. A correction that fits in the router, or i
 | Light cache | Slower medium, PhC, longer path | Short echo, not a KV-cache |
 | SiliconCache | CMOS off-crystal | Nonlinearity, router, thinking, cadence |
 | Context memory | SRAM/DRAM off-crystal | Context; replaceable without new glass |
+| Slow patch | volume hologram in Fe:LiNbO₃ | Exposure; readout erasure; \(M/\#\); not a KV-cache (§10) |
 | Detection | Si / GaN array | Phase needs a local interferometer |
 
 Blue light: smaller \(\lambda\) packs voxels; Rayleigh \(\propto \lambda^{-4}\). **Scaling hypothesis (§6.4):** GaN BIC as a candidate small interface; large bricks at 1550 nm. A Si detector does not see 1550 nm.
 
 ---
 
-## 11. Error model
+## 12. Error model
 
 Error sources this document admits in advance:
 
@@ -431,13 +520,15 @@ Error sources this document admits in advance:
 - the photodiode at 1550 nm (Ge/InGaAs, not Si),
 - twin-versus-Maxwell mismatch,
 - source ageing and photodarkening,
-- ageing of the *model*: a snapshot in glass does not accept the next checkpoint (§9).
+- ageing of the *model*: a snapshot in glass does not accept the next checkpoint (§9),
+- readout erasure of a photorefractive hologram until it is fixed or refreshed (§10),
+- crosstalk and the sharing of dynamic range (\(M/\#\)) when many pages share one volume (§10).
 
 Without post-write calibration the device is a sculpture, not an accelerator. Calibration corrects electronics and thresholds. It does not rewrite \(n(\mathbf{r})\).
 
 ---
 
-## 12. Arguments for
+## 13. Arguments for
 
 1. **The weights do not move.** This is the claim of the paper. In token-by-token decoding a GPU reads the weight set for every token, and the arithmetic is cheap beside that (§3, §8.8). Writing \(W\) into the crystal takes that read off the bus. In digital silicon Taalas makes the same move; we cite it as context, not as an OLLMU result.
 2. **Passive MACs are a literature condition, not a result.** Consistent with D²NN and with Nahmias, glass can be energetically cheaper for the linear operator alone at large \(N\) and a precision of a few bits. The condition for that to survive is §8.8: \(e_{\mathrm{conv}}\) and \(E_{\mathrm{src}}\) have to fit under the threshold.
@@ -445,8 +536,10 @@ Without post-write calibration the device is a sculpture, not an accelerator. Ca
 4. **A split of carriers.** Glass holds what is supposed to be large and fixed. Silicon holds what depends on the input, or what should stay replaceable: nonlinearity, the router, attention, context, a small correction.
 5. **BIC source:** room temperature, low optical threshold, narrow line, strong polarisation — *if* an electrical array appears.
 6. **The boundary is named.** Phase 1 has to compute one layer, the noise, and the energy per token, before anyone speaks of a model.
+7. **A stream instead of chat.** A vision input is already a field, and C-band traffic is already in the fibre. One drop at the end of a linear front-end skips the recode loop and the drop after every matrix, the cost §8.8 is there to name (§10). That is a hypothesis about where the claim sits, not a measurement.
+8. **A slow patch beside the ROM.** An adapter or a signature that lives longer than a token and shorter than a crystal has a candidate in a photorefractive hologram. The base \(W\) stays frozen. A signature that moves faster than an exposure stays in SRAM.
 
-## 13. Arguments against
+## 14. Arguments against
 
 1. The 2026 BIC laser is not an electrical array.
 2. Silicon does not guide 450 nm.
@@ -459,24 +552,29 @@ Without post-write calibration the device is a sculpture, not an accelerator. Ca
 9. A burned snapshot ages in months and does not accept the next checkpoint. A GPU that hauls weights can at least replace them. Here the same rigidity is sharper (§9).
 10. The twin must model silicon, the converter, and Maxwell — expensive and approximate.
 11. No paper assembles these pieces into an LLM. This one does not either.
+12. A frozen detector can be probed, and threats do not stand still. The patch is slow: exposure, erasure, \(M/\#\). It does not catch a weekly frontier checkpoint or a KV-cache (§10).
+13. A hybrid optical front-end is literature at small-classification scale (Chang et al.). It is not a security camera and it is not a packet parser. The field before decryption does not contain the payload of the higher layers.
+14. Correlation is a similarity score. Calling the brightest spot a decision moves \(\arg\max\) back into electronics. The hologram does not revive interferometric routing (§6.2).
 
 ---
 
-## 14. Boundary of version 0.2
+## 15. Boundary of versions 0.2 and 0.3
 
-Version 0.1 treated interferometric routing as the way the geometry itself chooses memory and experts. A fixed linear medium cannot do that; the claim is withdrawn (§6.2). The claim that remains is narrower: a frozen linear operator does not fetch weights from memory on every token. Nonlinearity, attention, and expert choice stay in electronics, and their cost is open (§8.8). Snapshot lifetime is an argument against, not for (§9, §13).
+Version 0.1 treated interferometric routing as the way the geometry itself chooses memory and experts. A fixed linear medium cannot do that; the claim is withdrawn (§6.2). The claim that remains is narrower: a frozen linear operator does not fetch weights from memory on every token. Nonlinearity, attention, and expert choice stay in electronics, and their cost is open (§8.8). Snapshot lifetime is an argument against, not for (§9, §14).
+
+Version 0.3 (October 2026) does not withdraw the 0.2 boundary. Interference is still not a router (§6.2). The balance in §8.8 is still a threshold, not a win. The lifetime of a frontier snapshot is still an argument against chat (§9, §14). What is new is narrower: the workload on which a freeze is less absurd is a vision stream and a C-band feature, and the replaceable part is a slow photorefractive hologram for adapters and signatures (§10). Correlation stays a linear score. Top-k stays in electronics. No number in §10 is an OLLMU measurement.
 
 ---
 
-## 15. Research phases
+## 16. Research phases
 
 No phase is executed in this repository. The repository is public documentation and does not contain a simulator.
 
-The next artifact that can be shown, or filed as a note, is phase 1: a small differentiable simulator, not a crystal and not a frontier model.
+The next artifact that can be shown, or filed as a note, is phase 1: a small differentiable simulator, not a crystal and not a frontier model. Phases 8 and 9 test the turn in version 0.3 (a vision front-end, a patch cycle). They do not jump ahead of phase 1, and they do not mean phase 1 has passed.
 
 | Phase | Goal | Success criterion | What is not success |
 | --- | --- | --- | --- |
-| 0 | This document | Fact/Hypothesis labels; the weight claim in front; the router described as electronics | “We have an optical LLM” |
+| 0 | This document | Fact/Hypothesis labels; the weight claim in front; the router described as electronics; the 0.3 workload and the hologram described as a slow score, not as a router | “We have an optical LLM” |
 | 1 | Differentiable simulator of one FFN layer: \(W_1\), \(\varphi\), \(W_2\), analog noise, an \(E_{\mathrm{token}}\) balance | Code; MAC error against NumPy at a named SNR; \(E_{\mathrm{token}}\) at named \(e_{\mathrm{bit}}\), \(e_{\mathrm{conv}}\), \(E_{\mathrm{src}}\) | A device, GPT scale, a verdict that O-E-O beats a GPU |
 | 2 | Toy classification (as in D²NN) | Accuracy near digital at a few bits of SNR | Natural language |
 | 3 | The same layer at width 64–256 | Error versus width and versus SNR | A transformer |
@@ -484,10 +582,12 @@ The next artifact that can be shown, or filed as a note, is phase 1: a small dif
 | 5 | Hybrid: digital attention + optical FFN | *System* energy against weight reads on the same FFN | “Zero watts” |
 | 6 | Source: from optical pump to electrical array | A separate GaN materials line | Required for phase 5 only if SiN+InGaN is not enough |
 | 7 | C-band + SOA between two mini-bricks | Analog SNR after the amplifier, measured, including accumulation without 3R | “Loss like 0.15 dB/km fibre” |
+| 8 | Optical front-end of a small vision classifier against a digital baseline | On a named small image set, the front-end plus a digital tail stays inside an accuracy gap named in advance, against an all-digital line with the same tail; the optical stack is counted as one detection at the end, and that count is set beside a drop after every matrix | Chat, a verdict that O-E-O beats a GPU, treating incoherent optics and a coherent D²NN as the same device |
+| 9 | Photorefractive patch: write, read, refresh or fix | One named patch (a small adapter or a few signatures) is written, read back as a linear map or a correlation score, and refreshed or fixed before erasure falls below a fidelity named in advance | A token-rate KV-cache, top-k in the hologram, a rewrite of the burned ROM |
 
 ---
 
-## 16. What we do not claim
+## 17. What we do not claim
 
 - That OLLMU exists in a laboratory.
 - That the Fąs et al. (2026) laser is an AI accelerator.
@@ -503,11 +603,18 @@ The next artifact that can be shown, or filed as a note, is phase 1: a small dif
 - That a blue laser beats EUV in lithography.
 - That 0.15 dB/km of submarine fibre is the loss of a written ROM.
 - That SOA/EDFA copy photons without noise or phase change.
+- That version 0.3 makes OLLMU a competitor to chat.
+- That a diffractive front-end deletes the digital tail, or that the scene zeroes \(E_{\mathrm{src}}\) in a coherent stack.
+- That a few bits suffice for detection or for an anomaly score. That is a hypothesis consistent with §8.7, not a measurement.
+- That a photorefractive hologram is a fast KV-cache or a weight update at token rate.
+- That a correlation spot is a top-k choice.
+- That InPhase, Project HSD, or Project Silica is OLLMU, an energy win, or a recipe for the patch.
+- That a frozen security model stays safe against someone who can probe it.
 - That the license confers an exclusive right. It is attribution. A public disclosure before filing removes novelty in the European system (Article 54 of the European Patent Convention). This is a notice of disclosure, not a legal opinion.
 
 ---
 
-## 17. Conclusions
+## 18. Conclusions
 
 OLLMU is a **named hypothesis about a weight carrier**. In token-by-token decoding the expensive part is hauling the weights, not the multiply itself. Writing a fixed \(W\) into glass takes that haul off the bus. In silicon the same move is already made with a hard-wired model; glass is a different physics of the same shortcut, not a free one.
 
@@ -515,8 +622,10 @@ The rest is the condition under which the claim survives. Nonlinearity, attentio
 
 The most honest next paper is phase 1: a differentiable simulator of one FFN layer, with noise and with an energy-per-token balance under named assumptions. Only that note has something to show. A sculpture of a frontier model does not.
 
+Version 0.3 does not move that claim onto chat. It moves the question onto a stream whose input is already light and whose context is short: a frame, or a packet in the band the cluster already uses. The replaceability the burned ROM does not have is either a slow holographic patch, with fixing and with an \(M/\#\) limit, or it stays in silicon. Phases 8 and 9 check the front-end and the patch cycle. They do not replace the measurement this paper does not have.
+
 ---
 
-## 18. Citations
+## 19. Citations
 
-Full list with DOIs (items 1–21 resolved on Crossref 2026-09-07; Horowitz and Taalas added 2026-10-21): [REFERENCES.md](REFERENCES.md). Key items: Fąs et al. 2026; Lin/Ozcan 2018; Shen 2017; Nahmias 2020; Horowitz 2014; Taalas (industrial context); Baba 2008; Vaswani 2017; Fedus 2022.
+Full list with DOIs (items 1–21 resolved on Crossref 2026-09-07; Horowitz, Taalas, and items 24–36 added 2026-10-21; items 33–34 are news reports, no DOI): [REFERENCES.md](REFERENCES.md). Key items: Fąs et al. 2026; Lin/Ozcan 2018; Shen 2017; Nahmias 2020; Horowitz 2014; Taalas (industrial context); Chang 2018; Psaltis 1990; Vander Lugt 1964; Mok 1993; Buse 1998; Baba 2008; Vaswani 2017; Fedus 2022.
