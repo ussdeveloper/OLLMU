@@ -1,20 +1,22 @@
 # OLLMU: Optical Large Language Model Unit
 
-A concept for a passive diffractive core (optical ROM): processing in light, a short light cache in slower media, SiliconCache and context memory off-crystal.
+A concept for a passive diffractive core (optical ROM): the weights of a frozen linear operator are the medium, light computes the MAC in transit, and nonlinearity, attention, and the router stay in electronics.
 
-Version 0.1.3 · September 2026 · license [OLLMU IAL 1.0](LICENSE) (implementation unrestricted; keep originator credit) · idea: **Anisul Wałsymzerp** · Polish version: [CONCEPT.pl.md](CONCEPT.pl.md) · citations: [REFERENCES.md](REFERENCES.md) · [attribution](ATTRIBUTION.md)
+Version 0.2.0 · October 2026 · license [OLLMU IAL 1.0](LICENSE) (implementation unrestricted; keep the public form of the originator credit) · idea: **Anisul Wałsymzerp** · Polish version: [CONCEPT.pl.md](CONCEPT.pl.md) · citations: [REFERENCES.md](REFERENCES.md) · [attribution](ATTRIBUTION.md)
 
-**This is not a working device.** It is a concept paper. No number in this text is a measurement from an OLLMU unit, because no such unit exists.
+**This is not a working device.** It is a public concept paper. No number in this text is a measurement from an OLLMU unit, because no such unit exists. The license requires attribution. It does not protect the idea and it is not a patent filing: public disclosure enters the state of the art.
 
 ---
 
 ## 1. Abstract
 
-We propose an inference architecture called **OLLMU** (Optical Large Language Model Unit). **Processing is optical:** frozen weights live in a three-dimensional diffractive core, and light performs linear MACs in transit. The crystal already delays the wave; different media can be chosen so that, where a short echo is useful, a **light cache** appears (including slow light). **SiliconCache** (nonlinearity, a fast buffer, a thinking loop) and **context memory** (long conversational state) sit **outside the crystal**. The load-bearing claim is that the model must be trained *when and how* to use those external memories — by interference routing and edge ports, not by a CPU that decides for the network at inference.
+The expensive part of large-language-model inference, in token-by-token decoding, is not the multiply. It is reading the weights out of memory again for every token. **OLLMU** is the hypothesis that those weights can be written into a volumetric diffractive core: light performs the linear MAC in transit, and the weight bus disappears because the weights are the medium. The same move — put the operator and the weights in one carrier, instead of hauling weights to the arithmetic — is what Taalas does in digital silicon by hard-wiring a model into the chip. OLLMU is not that chip and does not inherit its measurements.
+
+Everything else in the architecture is subordinate to that claim, and weaker than it. Nonlinearity (ReLU/GELU), attention, softmax, and the MoE router stay in electronics. After each optical matrix the signal is detected, converted, and emitted again. In photonics those converters are where the energy gain usually goes; §8.8 is a rough balance, not a measurement. An MoE router does not arise from interference in a fixed linear medium: extinguishing a port is a projection onto a fixed subspace, and a top-k choice needs a nonlinearity. Analog precision of a few bits, and the density in §8.9 (a diffraction ceiling), do not add up to a model of hundreds of billions of parameters. A burned snapshot ages: the crystal cannot be fine-tuned, and frontier snapshots move on a scale of months.
 
 The GaN quasi-BIC blue laser (**Fact**: Fąs et al., *Nano Letters*, 2026) is a **candidate coherent source**, not the compute core. The 2026 device is optically pumped, has a grating footprint of order \(100 \times 100\,\mu\mathrm{m}\), and is not an addressable array.
 
-A full transformer in one crystal is not a claim of this paper. The honest split is: static FFN blocks and MoE experts as optical ROM; attention \(QK^{\mathsf{T}}\) as a hybrid block, because it depends on the input. The autoregressive loop (detection → re-encoding of the next token) is part of the architecture and **is not free**. A large brick cluster saves power with three tricks: C-band (~1550 nm) in silica, SOA/EDFA amplifiers between blocks, 3R regeneration on SiliconCache — without pretending analog SNR is free.
+A full transformer in one crystal is not a claim of this paper. The honest split is: the static linear parts of FFNs, and the matrices of MoE experts, as optical ROM; attention \(QK^{\mathsf{T}}\), softmax, and expert choice as electronics. The autoregressive loop (detection → re-encoding of the next token) is part of the architecture and **is not free**. A large brick cluster holds power with three measures: C-band (~1550 nm) in silica, SOA/EDFA amplifiers between blocks, 3R regeneration on SiliconCache — without pretending analog SNR is free.
 
 ---
 
@@ -35,9 +37,11 @@ If a number has no label, it is not an OLLMU result.
 
 ## 3. Introduction
 
-Digital inference of large language models is limited by data movement and heat, not only by arithmetic. **Literature**: photonic MACs scale favourably at large \(N\) and low analog precision, on the order of a few bits, not FP16 (Nahmias et al., 2020). **Literature**: diffractive deep neural networks (D²NN) perform inference passively after digital training (Lin, Ozcan et al., 2018). **Literature**: Mach–Zehnder meshes implement matrix multiplication on silicon photonic chips (Shen et al., 2017). None of these lines has produced an LLM in a crystal.
+In autoregressive decoding, at small batch, each new token reads essentially the whole weight set. The arithmetic intensity of that GEMV is of order one MAC per weight. **Literature**: the energy of a DRAM access sits orders of magnitude above the energy of the arithmetic itself. Horowitz (ISSCC 2014) gives a DRAM access of order 1–2 nJ, and the I/O itself above 20 pJ/bit; the circulated 45 nm table lists a 32-bit DRAM read at 640 pJ and an 8-bit multiply at 0.2 pJ. That is a 2014 teaching anchor, not a 2026 HBM datasheet. It is enough for the structural claim: while \(b \cdot e_{\mathrm{bit}} \gg e_{\mathrm{MAC}}\), the arithmetic is a cheap annex to moving the weights. **Literature (industrial context)**: Taalas draws the same conclusion in silicon — the model weights are hard-wired into the chip, inference does not haul them from off-chip memory, and a small SRAM remains for the KV-cache and LoRA. In public: Llama 3.1 8B, and of order two months from a received model to hardware ([taalas.com](https://taalas.com/the-path-to-ubiquitous-ai/), checked 2026-10-21). That is not photonics and it is not evidence for OLLMU.
 
-The gap OLLMU tries to *name*, not close, is how to combine (i) a frozen linear operator in light, (ii) a short optical light cache where wave delay is enough, (iii) SiliconCache and context memory off-crystal, (iv) training that teaches the model *when* to use those external memories, without a controller that replaces the network at inference.
+**Literature**: photonic MACs scale favourably at large \(N\) and low analog precision, on the order of a few bits, not FP16 (Nahmias et al., 2020). **Literature**: diffractive deep neural networks (D²NN) perform inference passively after digital training (Lin, Ozcan et al., 2018). **Literature**: Mach–Zehnder meshes implement matrix multiplication on silicon photonic chips (Shen et al., 2017). None of these lines has produced an LLM in a crystal.
+
+The gap OLLMU tries to *name*, not close, is which **frozen** linear operators are worth writing, given that (i) a gain exists only if the disappearance of the weight bus survives the light–current–light cost, (ii) analog precision is a few bits, (iii) the snapshot cannot be fine-tuned when the model ages. A short light cache and the electronics off-crystal are annexes to that claim, not substitutes for it.
 
 ---
 
@@ -108,13 +112,18 @@ The electronic Kerr effect is fast and weak; thermal effects and free-carrier di
 
 **Material fact.** Silicon absorbs strongly in the blue (Green, 2008). Guiding uses Si₃N₄ (including ~0.08 dB/cm at 450 nm, Chauhan et al., 2020), GaN, or LiNbO₃. Hybrid bonding of InGaN diodes onto SiN platforms is literature (Mu et al., 2026), not production of BIC arrays.
 
+### 5.7. Weights that stay put
+
+**Literature.** Horowitz (ISSCC 2014), as in §3: moving a bit from DRAM costs many times a narrow MAC. **Literature (industrial context).** Taalas realises the conclusion in digital silicon: the model is part of the chip, not the contents of HBM. The flexibility the firm keeps sits beside the frozen weights — context window and LoRA in SRAM — not in rewiring the base weights. OLLMU carries the idea “the weights are the carrier” into glass. It does not carry CMOS mask density, a LoRA path, or a two-month cycle from snapshot to card.
+
 ---
 
 ## 6. Hypothesis: OLLMU architecture
 
 ```mermaid
 flowchart LR
-  tokens[TokenEncoder] --> emitters[EmitterArray]
+  tokens[TokenEncoder] --> router[ElectronicRouter]
+  router --> emitters[EmitterArray]
   emitters --> core[DiffractiveROM]
   core --> ports[OutputPorts]
   ports --> lightCache[LightCache]
@@ -128,52 +137,66 @@ flowchart LR
   recode --> emitters
 ```
 
-**Hypothesis.** Processing lives in light. Memory has three time scales. The model learns which scale to light.
+Ports are optical paths. Which expert is lit, where the nonlinearity runs, and when context is fetched, is decided by an electronic router. A phase written into the glass does not make that decision.
+
+**Hypothesis.** Frozen linear processing lives in light. Input-dependent decisions live in electronics. Memory has four time scales.
 
 1. **Token encoder (hybrid).** Activations map onto amplitude and phase. At the start: electronics plus modulators.
 
-2. **Emitter array.** Coherent sources. Candidate: a GaN BIC array. Today: optically pumped gratings.
+2. **Router (electronics).** A small network: logits, softmax, top-k. It chooses which expert core to illuminate, and whether this beat should call SiliconCache or context memory. The router weights are small and stay in silicon, so they can be replaced without a new crystal.
 
-3. **Diffractive core (ROM) — processing.** Written \(n(\mathbf{r})\). Light computes a fixed operator \(W\). Natural payload: FFN and MoE experts. Transit through the medium *already* delays the wave, \(\tau_{\mathrm{core}} = n L / c\); that is not a defect, it is an optical clock.
+3. **Emitter array.** Coherent sources. Candidate: a GaN BIC array. Today: optically pumped gratings. The router enables emission into the chosen core; that is an electronic switch, not interference in the glass.
 
-4. **Light cache (in-crystal / optical edge).** Where a *light* delay helps — aligning two passes, a layer echo, a phase beat — the field enters a slower medium (larger \(n\) or \(n_g\): slow light, another crystal, a longer path). This does **not** replace a KV-cache or ReLU. Kerr on that path is optional, not required.
+4. **Diffractive core (ROM) — processing.** Written \(n(\mathbf{r})\). Light computes a fixed operator \(W\). Natural payload: the linear part of an FFN and the matrix of a selected expert. Transit through the medium *already* delays the wave, \(\tau_{\mathrm{core}} = n L / c\); that is not a defect, it is an optical clock.
 
-5. **SiliconCache (off-crystal).** Detection → fast silicon cache → nonlinearity (ReLU/GELU/a small MLP) and/or a thinking vector. The result returns to the emitter array on a cadence the model learned: either as a re-process, or as extra data.
+5. **Light cache (in-crystal / optical edge).** Where a *light* delay helps — aligning two passes, a layer echo, a phase beat — the field enters a slower medium (larger \(n\) or \(n_g\): slow light, another crystal, a longer path). This does **not** replace a KV-cache or ReLU. Kerr on that path is optional, not required. Entry onto that path is a designed coupler or a switch, not a decision of the linear medium.
 
-6. **Context memory (off-crystal).** Long state (KV-cache analogue, scratchpad, token history). SRAM/DRAM or another electronic buffer. Light does not live there.
+6. **SiliconCache (off-crystal).** Detection → analog-to-digital conversion → nonlinearity (ReLU/GELU/a small MLP) and/or a thinking vector. The router lands here too, if it is not placed beside the cache. The result returns to the emitter array. Every such crossing is light–current–light and enters the balance in §8.8.
 
-7. **Receiver array and recode loop.** The next token. **Not free.**
+7. **Context memory (off-crystal).** Long state (KV-cache analogue, scratchpad, token history). SRAM/DRAM or another electronic buffer. Light does not live there.
 
-### 6.1. Three delay scales
+8. **Receiver array and recode loop.** The next token. **Not free.**
+
+### 6.1. Four delay scales
 
 | Scale | Where | What it holds | Time order (**Estimate**) |
 | --- | --- | --- | --- |
 | Core transit | in the crystal | nothing but the wave in flight | ps–ns per centimetre |
 | Light cache | slower optical medium | short echo, phase | ps–ns, delay–bandwidth product |
-| SiliconCache | silicon off-crystal | nonlinearity, thinking, beat alignment | ns–µs |
+| SiliconCache | silicon off-crystal | nonlinearity, router, thinking, beat alignment | ns–µs |
 | Context memory | silicon off-crystal | conversation context | µs–ms and longer, digital capacity |
 
-**Literature.** Different \(n\) and \(n_g\) change time of flight; that is textbook optics. The **hypothesis** is only the *use*: the model treats these scales as tools, not as one magic memory.
+**Literature.** Different \(n\) and \(n_g\) change time of flight; that is textbook optics. The **hypothesis** is only the *use*: a short optical echo is a clock and a phase alignment. Long state, and the decision “which expert”, are electronic.
 
-### 6.2. Routing: the model learns SiliconCache and context
+### 6.2. What interference will not choose
 
-**Hypothesis, legal physics.** Edge ports lead to the light cache, SiliconCache, or context memory. Two arms \(E_1\), \(E_2\) give
+**Hypothesis, physics.** A core with fixed \(n(\mathbf{r})\) is a linear operator, \( \mathbf{u}_{\mathrm{out}} = W \mathbf{u}_{\mathrm{in}} \), with one \(W\) for every input. Power at port \(i\) is
 
 \[
-P_{\mathrm{port}} \propto \lvert E_1 + E_2 e^{i\theta} \rvert^2.
+P_i = \lvert \mathbf{w}_i^{\dagger} \mathbf{u}_{\mathrm{in}} \rvert^2.
 \]
 
-\(\theta = \pi\) extinguishes the port (external memory stays dark). \(\theta = 0\) pushes energy onto the chosen path. The weights \(n(\mathbf{r})\) learn this *before* writing. At inference there is no spare CPU bit that says “use cache”.
+That is a fixed quadratic form. The inputs that extinguish the port are the kernel of the functional \(\mathbf{w}_i\): a fixed subspace, chosen at write time, independent of any comparison of “which expert is larger”.
 
-That is a training load, not a material miracle. The loss \(\mathcal{L}\) must tell the network that SiliconCache and context memory both cost and pay. Otherwise the model never uses them, or burns them for nothing.
+Two arms with a fabricated phase \(\theta\) do not change the verdict. If \(\theta\) extinguishes the port for every input, that row of \(W\) is zero and the port is dead. If the power depends on the input, it is still a soft match to one direction chosen in advance, not a top-k.
+
+An MoE router (**Literature**: Fedus et al.) computes
+
+\[
+r(\mathbf{u}) = \mathrm{TopK}\bigl(\mathrm{softmax}(W_r \mathbf{u})\bigr).
+\]
+
+\(\mathrm{softmax}\) and \(\mathrm{TopK}\) are nonlinear. \(W_r\) is small and stays in electronics. The selected expert is then one of several fixed optical maps \(W^{(e)}\). Lighting only that expert is enabling a modulator or selecting a brick, which is electronics again.
+
+Earlier drafts of this text described extinguishing a port with phase \(\theta = \pi\) as a memory policy learned into the geometry. That was a mistake: a fixed medium does not make an input-dependent decision. What remains is narrower and true. The glass holds the large \(W\). Silicon decides which \(W\) works on this beat.
 
 ### 6.3. What the core does not do
 
-The core does not train on the fly, is not DRAM, and does not hold 128k tokens. OLLMU is an inference ASIC for *one* weight snapshot; long context and nonlinearity are contracts with electronics that the model must learn to call.
+The core does not train on the fly, is not DRAM, does not hold 128k tokens, and does not choose experts. OLLMU is a carrier for *one* snapshot of linear operators. Long context, nonlinearity, and the router are a contract with electronics. The electronics can be corrected later. \(n(\mathbf{r})\) can only be replaced together with the crystal.
 
 ### 6.4. Signal fade in a large cluster
 
-A large OLLMU is a chain of bricks (expert → expert), not one boulder. Light weakens. Three tricks — labelled, not advertised.
+A large OLLMU is a chain of bricks (expert → expert), not one boulder. Light weakens. Three measures — labelled, not advertised.
 
 ```mermaid
 flowchart LR
@@ -185,37 +208,38 @@ flowchart LR
 
 **A. C-band, ~1550 nm, silica.** **Literature:** a pure-silica-core fibre has a record loss of 0.1424 dB/km at 1550 nm (Tamura et al., *JLT* 2018, DOI [10.1109/JLT.2018.2796647](https://doi.org/10.1109/JLT.2018.2796647)). **Estimate** for 30 cm of that fibre: \(\sim 4\times 10^{-5}\,\mathrm{dB}\) — a rounding error. **That is not ROM loss.** Written \(\Delta n\), voxel scatter, diffraction and fs-laser colour centres dominate bulk absorption. Rayleigh \(\propto \lambda^{-4}\): 450 → 1550 nm cuts that term by a factor of \(\sim 140\). **Scaling hypothesis:** small chips / a BIC interface may stay blue; **large cluster bricks** move to 1550 nm (fused silica). Silicon as a *waveguide* is then transparent; a photodiode at 1550 nm is Ge or InGaAs, not plain Si.
 
-**B. Optical amplifiers between bricks (SOA, EDFA).** **Literature:** EDFAs and SOAs raise power without detection. **Hypothesis:** after expert 1 a weak field enters an amplifier pumped by a cheap laser and enters expert 2 still as light. **We do not claim** phase and analog amplitude come out untouched. ASE adds noise (amplifier noise figure, a few dB); an SOA has chirp (Henry factor) and saturation that crush MAC precision. This is a power station, not magic photon copying.
+**B. Optical amplifiers between bricks (SOA, EDFA).** **Literature:** EDFAs and SOAs raise power without detection. **Hypothesis:** after expert 1 a weak field enters an amplifier pumped by a cheap laser and enters expert 2 still as light. **We do not claim** phase and analog amplitude come out untouched. ASE adds noise (amplifier noise figure, a few dB); an SOA has chirp (Henry factor) and saturation that crush MAC precision. This is a power station, not magic photon copying. An amplifier cascade **without** a drop into electronics accumulates that noise; see §8.7.
 
-**C. 3R regeneration on SiliconCache.** **Hypothesis, the most honest analog save.** Weak light hits a detector, silicon applies the nonlinearity (ReLU and so on), a new laser fires a full-power pulse into the next core. That is classical regeneration: reamplify / reshape (and optionally retime). It resets SNR. It pays O-E-O: time, energy, loss of phase unless you rebuild I/Q. In OLLMU that side path *already exists* — here it is also a pump station, not only a nonlinearity.
+**C. 3R regeneration on SiliconCache.** **Hypothesis, the most honest analog save.** Weak light hits a detector, silicon applies the nonlinearity (ReLU and so on), a new laser fires a full-power pulse into the next core. That is classical regeneration: reamplify / reshape (and optionally retime). It resets SNR. It pays O-E-O: time, energy, loss of phase unless you rebuild I/Q. In OLLMU that side path *already exists* — here it is also a pump station, not only a nonlinearity. The SNR reset and the converter cost are the same event. A long analog chain without accumulated error, and a path without converters, are not available together.
 
-**Order of use (**Hypothesis**):** light cache and 1550 nm where loss is small and phase should survive; SOA/EDFA between bricks while analog still holds; SiliconCache when you need nonlinearity or when analog SNR has died. The model learns that **before** writing, same as memory routing.
+**Order of use (**Hypothesis**):** light cache and 1550 nm where loss is small and phase should survive; SOA/EDFA between bricks while analog still holds; SiliconCache when you need nonlinearity, a router, or when analog SNR has died. The schedule is a system design. It is not a phase learned into \(n(\mathbf{r})\).
 
 ---
 
 ## 7. Mapping onto a transformer (honest split)
 
-**Literature.** A transformer layer (Vaswani et al., 2017) is attention plus an FFN. The FFN is usually two fixed matrices and a nonlinearity. MoE (Fedus et al.) selects a subset of experts.
+**Literature.** A transformer layer (Vaswani et al., 2017) is attention plus an FFN. The FFN is usually two fixed matrices and a nonlinearity. MoE (Fedus et al.) selects a subset of experts with a nonlinear router.
 
 | Block | Is optical ROM enough? | OLLMU proposal |
 | --- | --- | --- |
 | Embedding / unembedding | Partially (fixed matrix) | ROM or electronics |
-| FFN (linear part) | Yes | Primary processing in light |
-| FFN nonlinearity | Not in the ROM | SiliconCache, off-crystal |
-| MoE expert | Routing = a port | Interference at the edge |
+| FFN, linear part \(W_1, W_2\) | Yes, as a frozen \(W\) | Primary processing in light; the weights do not move |
+| FFN nonlinearity | No | SiliconCache; every crossing is O-E-O |
+| MoE expert matrix | Yes, each one alone | A separate ROM per expert |
+| MoE router, top-k | No | Electronics; interference is not a router (§6.2) |
 | Attention \(QK^{\mathsf{T}}\) | No: the matrix depends on tokens | Hybrid; state in context memory |
 | Softmax | No | SiliconCache |
 | KV-cache / context | Not as an optical volume | Context memory off-crystal |
 | Short echo / phase | Yes, if \(\tau\) is small | Light cache (slower medium) |
 | Autoregression | Not in a single pass | Recode loop |
 
-**Working hypothesis.** Processing = light. SiliconCache and context memory = external contracts the network learns **before** \(n(\mathbf{r})\) is written into the crystal. Light cache = a short optical delay, not conversation memory.
+**Working hypothesis.** Glass = a fixed \(W\), read by light instead of from HBM. Silicon = everything that depends on the current input, or that should stay replaceable: \(\varphi\), the router, attention, context, a possible low-rank correction. Light cache = a short optical delay, not conversation memory.
 
 ---
 
 ## 8. Mathematics
 
-The equations below are standard. They are not a proof that OLLMU scales to billions of parameters.
+The equations below are standard. They are not a proof that OLLMU scales to hundreds of billions of parameters. They are not a measurement of energy per token either.
 
 ### 8.1. Propagation
 
@@ -261,21 +285,21 @@ Light cache in a slower medium:
 
 Slower light raises local \(I\) and \(L_{\mathrm{eff}}\). That can be a side effect of a light cache. It is **not** the model's default nonlinearity. ReLU/GELU live in SiliconCache. Kerr ≠ ReLU unless someone measures it.
 
-### 8.5. Port extinction
+### 8.5. A port is a quadratic form
 
-Let \(E_{\mathrm{port}} = a(\mathbf{u}_{\mathrm{in}}) + b(\mathbf{u}_{\mathrm{in}})\). Training — **before writing** — should reach \(a \approx -b\) when SiliconCache, context memory, or the light cache must stay dark, and \(a \approx b\) when that memory should act. Sparse energy steering, not a CPU bit at inference.
+Let the port row be a fixed \(\mathbf{w}\). Then \(P = \lvert \mathbf{w}^{\dagger} \mathbf{u} \rvert^2\) depends on \(\mathbf{u}\) only insofar as \(\mathbf{u}\) has a component along \(\mathbf{w}\). Training before writing can choose \(\mathbf{w}\) (which direction couples to the port at all). It cannot make the same port be expert 3 on one token and expert 7 on the next. That second job is the router \(W_r\) from §6.2, and it stays out of the glass.
 
 ### 8.6. Loss function
 
-**Hypothesis.** All of \(\mathcal{L}\) is evaluated on a digital twin **before** \(n(\mathbf{r})\) is written into the crystal.
+**Hypothesis.** \(\mathcal{L}_{\mathrm{task}}\) and the penalty for calling electronics are evaluated on a digital twin. Only the \(n(\mathbf{r})\) that corresponds to the chosen \(W\) is written into glass. Router weights, nonlinearity scale, and any low-rank correction stay in the SiliconCache description and may change after writing.
 
 \[
-\mathcal{L} = \mathcal{L}_{\mathrm{task}} + \lambda_{\mathrm{si}} \mathbb{E}\bigl[ P_{\mathrm{Si}} \cdot \mathbf{1}_{\text{SiliconCache not needed}} \bigr] + \lambda_{\mathrm{ctx}} \mathbb{E}\bigl[ P_{\mathrm{ctx}} \cdot \mathbf{1}_{\text{context not needed}} \bigr] + \lambda_{\mathrm{lc}} \mathbb{E}\bigl[ P_{\mathrm{lc}} \cdot \mathbf{1}_{\text{echo not needed}} \bigr] + \lambda_{\mathrm{ph}} \mathcal{L}_{\mathrm{physics}} + \lambda_f \mathcal{L}_{\mathrm{fab}}.
+\mathcal{L} = \mathcal{L}_{\mathrm{task}} + \lambda_{\mathrm{si}} \mathbb{E}[C_{\mathrm{Si}}] + \lambda_{\mathrm{ctx}} \mathbb{E}[C_{\mathrm{ctx}}] + \lambda_{\mathrm{ph}} \mathcal{L}_{\mathrm{physics}} + \lambda_f \mathcal{L}_{\mathrm{fab}}.
 \]
 
-Without a twin that knows SiliconCache and context memory, “burning a model into glass” is a slogan.
+\(C_{\mathrm{Si}}\) and \(C_{\mathrm{ctx}}\) are the costs of actual electronic calls (converter, router, context read), not optical power at a port pretending to be a decision bit. Without a twin that has noise, O-E-O, and a separate router, “burning a model into glass” is a slogan.
 
-### 8.7. Analog precision
+### 8.7. Analog precision and accumulation
 
 **Literature / Estimate.** Under additive noise
 
@@ -283,17 +307,60 @@ Without a twin that knows SiliconCache and context memory, “burning a model in
 b \approx \tfrac12 \log_2 (1 + \mathrm{SNR}).
 \]
 
-Shot noise, phase drift, scattering, and write error limit \(b\) to **a few bits**, in line with Nahmias et al. (a ~4-bit threshold in their comparison). Digital models in INT4/INT8 show that low precision can suffice in FFNs — but this is analog, not INT4 with correction.
+Shot noise, phase drift, scattering, and write error limit \(b\) to **a few bits**, in line with Nahmias et al. (a ~4-bit threshold in their comparison). For \(b = 4\) the formula gives \(\mathrm{SNR} \approx 255\) (about 24 dB): an rms error of a few percent of full scale, before write error and drift. Digital models in INT4/INT8 show that low precision can suffice in FFNs — but that is arithmetic with a scale and exact accumulation, not an analog chain.
 
-### 8.8. Energy
+**Estimate, accumulation.** Three mechanisms are in play, and they must not be collapsed into one sentence.
+
+- Inside one optical matrix the budget is those few bits. That is what remains at the detector, even if the previous stage passed through 3R.
+- An analog cascade without a drop into electronics (brick, SOA, brick, …) adds amplifier noise and phase error at each stage. Uncorrelated relative error grows as \(\sqrt{L}\); a systematic \(\Delta n\) error does not average down at all.
+- A drop into SiliconCache and a fresh emission **reset** SNR and **are** the cost \(e_{\mathrm{conv}}\) from §8.8. A long analog path without accumulation, and a path without converters, are not available together.
+
+Separately: the write error \(\Delta n(\mathbf{r})\) is systematic. A louder laser does not cancel it. This paper does not show that a chain with a budget of ~4 bits per matrix, after tens of layers and after a real write error, stays inside the quality basin of a digital INT4 FFN.
+
+### 8.8. Energy per token
+
+The equation is a split, not a result:
 
 \[
-E_{\mathrm{token}} = E_{\mathrm{src}} + E_{\mathrm{det}} + E_{\mathrm{Si}} + E_{\mathrm{ctx}} + E_{\mathrm{recode}} + E_{\mathrm{attn, hyb}}.
+E_{\mathrm{token}} = E_{\mathrm{src}} + N_{\mathrm{conv}}\, e_{\mathrm{conv}} + E_{\mathrm{ctx}} + E_{\mathrm{recode}} + E_{\mathrm{attn, hyb}}.
 \]
 
-\(E_{\mathrm{core}}\) is ~0 aside from optical loss (which the sources still pay). The light cache is optical; SiliconCache and context memory are O-E-O. **Methodological fact.** Zero joules applies only to the passive \(W\) in glass.
+For a frozen \(W\) the term “read the weights from memory” is zero. Optical loss is still paid by the source, so it sits in \(E_{\mathrm{src}}\). **Methodological fact.** Zero joules on the weight bus applies only to \(W\) not travelling from HBM. It does not apply to the token.
 
-### 8.9. Volume and parameters
+On the GPU decode side, one layer, batch 1, weights that do not reside next to the arithmetic:
+
+\[
+E_{\mathrm{move}} = N_w \, b \, e_{\mathrm{bit}}, \qquad E_{\mathrm{MAC}} = N_w \, e_{\mathrm{MAC}}, \qquad \frac{E_{\mathrm{move}}}{E_{\mathrm{MAC}}} = \frac{b \, e_{\mathrm{bit}}}{e_{\mathrm{MAC}}}.
+\]
+
+\(N_w = 2\, d\, d_{\mathrm{ff}}\) for the two FFN matrices. The ratio does not depend on width. On the Horowitz anchor (\(b = 4\), \(e_{\mathrm{bit}} = 20\,\mathrm{pJ}\), \(e_{\mathrm{MAC}} = 0.2\,\mathrm{pJ}\)) it is 400. The probe “what if a bit is twenty times cheaper”, \(e_{\mathrm{bit}} = 1\,\mathrm{pJ}\), gives a ratio of 20. The probe is not an HBM measurement. It shows where the thesis breaks: at \(e_{\mathrm{bit}}\) of order \(e_{\mathrm{MAC}} / b\), a fraction of a picojoule per bit on this MAC anchor, the multiply catches the transport. Below that neighbourhood the main claim of this paper loses force even before lasers are added.
+
+On the OLLMU side the same layer pays converters. Four events are charged to this layer: emitting the input (\(d\)), detecting after \(W_1\) (\(d_{\mathrm{ff}}\)), emitting into \(W_2\) (\(d_{\mathrm{ff}}\)), detecting after \(W_2\) (\(d\)).
+
+\[
+N_{\mathrm{conv}} = 2\,(d + d_{\mathrm{ff}}).
+\]
+
+In a stack, neighbouring layers share a boundary (one layer’s detection is the next layer’s emission), so a deep stack pays fewer events per layer and the budget per event rises. The threshold below is the stricter one: this layer is charged for its entrance and its exit in full.
+
+The threshold at which the converters alone catch the weight transport alone:
+
+\[
+e_{\mathrm{conv}}^{\star} = \frac{d\, d_{\mathrm{ff}}}{d + d_{\mathrm{ff}}}\, b\, e_{\mathrm{bit}}.
+\]
+
+**Estimate, not a measurement.** A width in the style of a 7B layer (\(d = 4096\), \(d_{\mathrm{ff}} = 11008\)) and the toy layer of phase 1 (\(d = 256\), \(d_{\mathrm{ff}} = 1024\)):
+
+| Assumption | \(e_{\mathrm{bit}}\) | \(E_{\mathrm{move}}/E_{\mathrm{MAC}}\) | \(e_{\mathrm{conv}}^{\star}\) at \(d=4096\) | \(e_{\mathrm{conv}}^{\star}\) at \(d=256\) |
+| --- | --- | --- | --- | --- |
+| DRAM I/O, Horowitz 2014 | 20 pJ | 400 | ~240 nJ | ~16 nJ |
+| Probe: bit 20× cheaper | 1 pJ | 20 | ~12 nJ | ~0.8 nJ |
+
+A wide layer gives the converter a budget of hundreds of nanojoules on the 2014 anchor, and about ten nanojoules if the bit has become twenty times cheaper. The narrow layer of phase 1 is much less forgiving. \(E_{\mathrm{src}}\) sits **outside** this table and can void it. An identity to substitute, not a laser measurement: \(1\,\mathrm{mW}\times 1\,\mu\mathrm{s} = 1\,\mathrm{nJ}\). A 1 W source for 100 ns is already 100 nJ per pulse, the order of the wide-layer threshold at 20 pJ/bit and clearly above the threshold at 1 pJ/bit.
+
+What this table does not do: do not multiply 20 pJ/bit by a frontier parameter count and call the product a GPU’s energy. The anchor is for the ratio and for the threshold \(e_{\mathrm{conv}}^{\star}\). The verdict “glass beats a GPU” needs measured \(e_{\mathrm{conv}}\) and \(E_{\mathrm{src}}\). This paper does not have them. Phase 1 is where they get collected.
+
+### 8.9. Volume, parameters, ceiling
 
 **Estimate, not a measurement.** Suppose voxels of size \(\sim\lambda\) in glass each carry \(k\) effective analog bits. For \(\lambda = 450\,\mathrm{nm}\) and \(k = 4\):
 
@@ -301,23 +368,34 @@ E_{\mathrm{token}} = E_{\mathrm{src}} + E_{\mathrm{det}} + E_{\mathrm{Si}} + E_{
 \rho \sim \frac{k}{\lambda^3} \approx \frac{4}{(4.5\times 10^{-7})^3}\ \mathrm{bit/m^3} \sim 4\times 10^{19}\ \mathrm{bit/m^3}.
 \]
 
-This is a **diffraction-limited ceiling**, not a usable density. Crosstalk, waveguides, ports, and tolerances cut orders of magnitude. Even then the map “PyTorch parameter = voxel” is false: \(W\) is a dense wave operator, not a CSR matrix. Conclusion: LLM scale needs either a huge volume, or multiplexing (space × wavelength × time), or **giving up on the whole model in favour of the FFN**.
+This is a **diffraction-limited ceiling**, not a usable density. Crosstalk, waveguides, ports, and tolerances cut orders of magnitude. Even then the map “PyTorch parameter = voxel” is false: \(W\) is a dense wave operator, not a CSR matrix. A voxel of size \(\lambda\) does not store 4 bits with a digital noise margin.
+
+Volume at this ceiling, \(V = N b / \rho\), for \(b = 4\):
+
+| Parameters \(N\) | Volume at the ceiling |
+| --- | --- |
+| \(10^{11}\) | \(\sim 10\,\mathrm{cm}^3\) |
+| \(10^{12}\) | \(\sim 0.1\,\mathrm{dm}^3\) |
+
+Frontier models are of that order and larger. The ceiling looks modest only because it is a ceiling. Three orders down for coupling is litres; six orders is cubic metres. On top of that, §8.7: even if the volume worked out, a budget of a few bits per matrix through tens of layers is not shown to be enough. The operational conclusion of this paper is narrower than “the whole model in a crystal”: one linear FFN layer, then a brick of experts, if phases 1–4 pass at all.
 
 ---
 
 ## 9. Training before writing into the crystal
 
-**Hard hypothesis.** The network — including routing to SiliconCache, context memory, and the light cache — is trained **entirely on a digital twin before** \(n(\mathbf{r})\) is written. After writing, the crystal is ROM. There is no on-glass fine-tuning.
+**Hard hypothesis.** The operators \(W\) that are to live in glass are trained on a digital twin **before** \(n(\mathbf{r})\) is written. After writing, the crystal is a ROM of those operators. There is no fine-tuning of \(n(\mathbf{r})\).
 
 Order:
 
-1. Twin: core propagator + light cache (\(n\), \(n_g\)) + SiliconCache and context-memory models (detector, nonlinearity, buffer, cadence).
-2. Train \(\mathcal{L}\) from §8.6. The model learns *when* to light the silicon port, *when* to fetch context, *when* an optical echo is enough, *when* to leave everything dark.
+1. Twin: core propagator + light cache (\(n\), \(n_g\)) + models of the detector, the ADC, the nonlinearity, the router, and context memory, with noise at the declared bit width.
+2. Train \(\mathcal{L}\) from §8.6. The router learns *when* to call silicon and *which* expert to light. Those weights do not go into the glass.
 3. Quantise \(n(\mathbf{r})\) to what fs-writing / lithography can do.
 4. Write into the crystal. Optical-weight learning ends.
-5. Calibrate electronics (thresholds, SiliconCache delay); do not “retrain the crystal”.
+5. Calibrate the electronics (thresholds, delay, router weights). That is not retraining the crystal.
 
-At inference the geometry already *is* the memory policy. A CPU does not pick the cache for the model.
+A new base model means a new crystal. A correction that fits in the router, or in a small low-rank patch on the silicon side, does not touch the crystal — and for that reason it does not save a snapshot that has to be replaced as a whole. Taalas keeps an SRAM and a mask cycle of order months for that margin. OLLMU has no such SRAM in the volume of the glass.
+
+**Estimate, lifetime.** Frontier snapshots are replaced on a scale of months. A GPU pays the weight bus and can load the next checkpoint the same day. The crystal saves the bus and will not accept the next checkpoint. A brick is rational only while the useful life of the snapshot exceeds the write time, and the transport energy saved has time to repay fabrication. This paper does not show that inequality. The freeze that, on a GPU, is the price of flexibility is sharper here: the carrier dies with the model.
 
 ---
 
@@ -332,8 +410,8 @@ At inference the geometry already *is* the memory policy. A CPU does not pick th
 | Inter-brick amplifier | SOA, EDFA | ASE, chirp, saturation |
 | Detection at 1550 nm | Ge / InGaAs | Not plain silicon |
 | Light cache | Slower medium, PhC, longer path | Short echo, not a KV-cache |
-| SiliconCache | CMOS off-crystal | Nonlinearity, thinking, cadence |
-| Context memory | SRAM/DRAM off-crystal | Context; the model learns before writing |
+| SiliconCache | CMOS off-crystal | Nonlinearity, router, thinking, cadence |
+| Context memory | SRAM/DRAM off-crystal | Context; replaceable without new glass |
 | Detection | Si / GaN array | Phase needs a local interferometer |
 
 Blue light: smaller \(\lambda\) packs voxels; Rayleigh \(\propto \lambda^{-4}\). **Scaling hypothesis (§6.4):** GaN BIC as a candidate small interface; large bricks at 1550 nm. A Si detector does not see 1550 nm.
@@ -344,72 +422,68 @@ Blue light: smaller \(\lambda\) packs voxels; Rayleigh \(\propto \lambda^{-4}\).
 
 Error sources this document admits in advance:
 
-- \(\Delta n(\mathbf{r})\) write inaccuracy,
+- \(\Delta n(\mathbf{r})\) write inaccuracy (the systematic term, §8.7),
 - roughness and loss,
 - thermal phase drift (especially thermal Kerr),
 - vibration and interferometer instability,
 - shot noise and ADC,
-- ASE and SOA/EDFA saturation,
+- ASE and SOA/EDFA saturation in a cascade without 3R,
 - the photodiode at 1550 nm (Ge/InGaAs, not Si),
 - twin-versus-Maxwell mismatch,
-- source ageing and photodarkening.
+- source ageing and photodarkening,
+- ageing of the *model*: a snapshot in glass does not accept the next checkpoint (§9).
 
-Without post-write calibration the device is a sculpture, not an accelerator.
+Without post-write calibration the device is a sculpture, not an accelerator. Calibration corrects electronics and thresholds. It does not rewrite \(n(\mathbf{r})\).
 
 ---
 
 ## 12. Arguments for
 
-1. **Passive MACs.** Consistent with D²NN and Nahmias: at large \(N\) and low precision, glass can be energetically cheaper *for the linear operator alone* than digital MACs.
-2. **ROM makes business sense** if a frontier snapshot lives for months. No on-device fine-tuning is not a defect of an ASIC.
+1. **The weights do not move.** This is the claim of the paper. In token-by-token decoding a GPU reads the weight set for every token, and the arithmetic is cheap beside that (§3, §8.8). Writing \(W\) into the crystal takes that read off the bus. In digital silicon Taalas makes the same move; we cite it as context, not as an OLLMU result.
+2. **Passive MACs are a literature condition, not a result.** Consistent with D²NN and with Nahmias, glass can be energetically cheaper for the linear operator alone at large \(N\) and a precision of a few bits. The condition for that to survive is §8.8: \(e_{\mathrm{conv}}\) and \(E_{\mathrm{src}}\) have to fit under the threshold.
 3. **Light cache** uses the fact that the crystal already delays the wave; a slower medium where a short echo helps — not as a KV-cache.
-4. **Train-then-write:** SiliconCache and context policy live in the ROM geometry, not in an inference CPU.
+4. **A split of carriers.** Glass holds what is supposed to be large and fixed. Silicon holds what depends on the input, or what should stay replaceable: nonlinearity, the router, attention, context, a small correction.
 5. **BIC source:** room temperature, low optical threshold, narrow line, strong polarisation — *if* an electrical array appears.
-6. **Processing stays in light;** electronics are memory and nonlinearity, not the MAC core.
+6. **The boundary is named.** Phase 1 has to compute one layer, the noise, and the energy per token, before anyone speaks of a model.
 
 ## 13. Arguments against
 
 1. The 2026 BIC laser is not an electrical array.
 2. Silicon does not guide 450 nm.
 3. D²NN and fs-PNN are MNIST / small-network scale.
-4. Attention is not a ROM; context memory is O-E-O.
-5. Kerr on the light cache ≠ ReLU.
-6. The token→light→token loop and SiliconCache eat the core’s gain.
-7. The twin must model silicon *and* Maxwell — expensive and approximate.
-8. After writing, optical weights cannot be fixed.
-9. The density in §8.9 is a ceiling, not a production plan.
-10. No paper assembles these pieces into an LLM — this one does not either.
+4. Every nonlinearity and every router is light–current–light. Converters and the laser can eat the gain from stationary weights; §8.8 shows a threshold, not a win.
+5. Interference in a fixed core is not a top-k choice (§6.2).
+6. Kerr on the light cache ≠ ReLU.
+7. A budget of ~4 bits per matrix, a systematic write error, and an SOA cascade without 3R are not shown to be tolerable through tens of layers (§8.7).
+8. The density in §8.9 is a ceiling. Frontier models are of order \(10^{11}\)–\(10^{12}\) parameters; usable density and the map “weight = voxel” are open.
+9. A burned snapshot ages in months and does not accept the next checkpoint. A GPU that hauls weights can at least replace them. Here the same rigidity is sharper (§9).
+10. The twin must model silicon, the converter, and Maxwell — expensive and approximate.
+11. No paper assembles these pieces into an LLM. This one does not either.
 
 ---
 
-## 14. Elements added relative to the source conversation
+## 14. Boundary of version 0.2
 
-The conversation that produced this concept omitted or treated too lightly:
-
-- SiliconCache and context memory off-crystal, with training **before** writing,
-- light cache as a short echo, not a KV stand-in,
-- the autoregressive loop as a cost,
-- the FFN / attention split,
-- MoE as routing,
-- the digital twin and calibration,
-- the error model and \(E_{\mathrm{token}}\).
+Version 0.1 treated interferometric routing as the way the geometry itself chooses memory and experts. A fixed linear medium cannot do that; the claim is withdrawn (§6.2). The claim that remains is narrower: a frozen linear operator does not fetch weights from memory on every token. Nonlinearity, attention, and expert choice stay in electronics, and their cost is open (§8.8). Snapshot lifetime is an argument against, not for (§9, §13).
 
 ---
 
 ## 15. Research phases
 
-No phase is executed in this repository.
+No phase is executed in this repository. The repository is public documentation and does not contain a simulator.
+
+The next artifact that can be shown, or filed as a note, is phase 1: a small differentiable simulator, not a crystal and not a frontier model.
 
 | Phase | Goal | Success criterion | What is not success |
 | --- | --- | --- | --- |
-| 0 | This document | Consistent Fact/Hypothesis labels | “We have an optical LLM” |
-| 1 | Numerical twin of a small D²NN + 1 side loop | Agreement with analytic \(W\) and \(\Delta\varphi\) | GPT scale |
+| 0 | This document | Fact/Hypothesis labels; the weight claim in front; the router described as electronics | “We have an optical LLM” |
+| 1 | Differentiable simulator of one FFN layer: \(W_1\), \(\varphi\), \(W_2\), analog noise, an \(E_{\mathrm{token}}\) balance | Code; MAC error against NumPy at a named SNR; \(E_{\mathrm{token}}\) at named \(e_{\mathrm{bit}}\), \(e_{\mathrm{conv}}\), \(E_{\mathrm{src}}\) | A device, GPT scale, a verdict that O-E-O beats a GPU |
 | 2 | Toy classification (as in D²NN) | Accuracy near digital at a few bits of SNR | Natural language |
-| 3 | Mini-FFN (e.g. width 64–256) | MAC error vs NumPy at a stated SNR | A transformer |
-| 4 | MoE routing onto 2–4 optical experts | Measured interferometric port extinction | A full MoE LLM |
-| 5 | Hybrid: digital attention + optical FFN | *System* latency and energy vs GPU on the same FFN | “Zero watts” |
+| 3 | The same layer at width 64–256 | Error versus width and versus SNR | A transformer |
+| 4 | An electronic router and 2–4 optical expert ROMs | Top-k is computed in silicon; a port with fixed \(\mathbf{w}\) is shown to be a projection, not a router | “Interferometric top-k” |
+| 5 | Hybrid: digital attention + optical FFN | *System* energy against weight reads on the same FFN | “Zero watts” |
 | 6 | Source: from optical pump to electrical array | A separate GaN materials line | Required for phase 5 only if SiN+InGaN is not enough |
-| 7 | C-band + SOA between two mini-bricks | Analog SNR after the amplifier, measured | “Loss like 0.15 dB/km fibre” |
+| 7 | C-band + SOA between two mini-bricks | Analog SNR after the amplifier, measured, including accumulation without 3R | “Loss like 0.15 dB/km fibre” |
 
 ---
 
@@ -418,24 +492,31 @@ No phase is executed in this repository.
 - That OLLMU exists in a laboratory.
 - That the Fąs et al. (2026) laser is an AI accelerator.
 - That LLM inference energy will fall to a fraction of a per-mille of a GPU.
-- That a full frontier model fits in a crystal.
+- That the balance in §8.8 is a measurement or a win over a GPU.
+- That a full frontier model fits in a crystal. §8.9 is a ceiling, not a capacity.
+- That ~4 analog bits survive tens of layers.
+- That interference in a fixed core selects top-k experts or turns a cache on.
 - That Kerr on the light cache is ReLU.
 - That slow light replaces a KV-cache.
-- That the model learns *after* the crystal is written.
+- That the base model learns *after* the crystal is written.
+- That freezing the weights is an advantage when a snapshot lives for months.
 - That a blue laser beats EUV in lithography.
 - That 0.15 dB/km of submarine fibre is the loss of a written ROM.
 - That SOA/EDFA copy photons without noise or phase change.
+- That the license confers an exclusive right. It is attribution. A public disclosure before filing removes novelty in the European system (Article 54 of the European Patent Convention). This is a notice of disclosure, not a legal opinion.
 
 ---
 
 ## 17. Conclusions
 
-OLLMU is a **named hardware hypothesis**: processing in light, a light cache, SiliconCache and context off-crystal. A large cluster: 1550 nm in silica, SOA/EDFA between bricks, 3R on SiliconCache. The model learns that **before** the geometry is written. 0.14 dB/km is a fibre figure, not written-ROM loss.
+OLLMU is a **named hypothesis about a weight carrier**. In token-by-token decoding the expensive part is hauling the weights, not the multiply itself. Writing a fixed \(W\) into glass takes that haul off the bus. In silicon the same move is already made with a hard-wired model; glass is a different physics of the same shortcut, not a free one.
 
-The most honest next paper is a twin with SiliconCache, not a sculpture of a frontier model.
+The rest is the condition under which the claim survives. Nonlinearity, attention, and the router stay in electronics, so every layer pays light–current–light. Interference does not choose an expert. A few analog bits and a diffraction ceiling are not a plan for a model of hundreds of billions of parameters. A snapshot in a crystal ages with the model and cannot be fine-tuned.
+
+The most honest next paper is phase 1: a differentiable simulator of one FFN layer, with noise and with an energy-per-token balance under named assumptions. Only that note has something to show. A sculpture of a frontier model does not.
 
 ---
 
 ## 18. Citations
 
-Full list with DOIs (resolved on Crossref 2026-09-07): [REFERENCES.md](REFERENCES.md). Key items: Fąs et al. 2026; Lin/Ozcan 2018; Shen 2017; Nahmias 2020; Baba 2008; Vaswani 2017; Fedus 2022.
+Full list with DOIs (items 1–21 resolved on Crossref 2026-09-07; Horowitz and Taalas added 2026-10-21): [REFERENCES.md](REFERENCES.md). Key items: Fąs et al. 2026; Lin/Ozcan 2018; Shen 2017; Nahmias 2020; Horowitz 2014; Taalas (industrial context); Baba 2008; Vaswani 2017; Fedus 2022.

@@ -61,3 +61,9 @@ DOI targets below were resolved against the Crossref API on 2026-09-07 (HTTP 200
 20. A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, I. Polosukhin, “Attention Is All You Need,” *NeurIPS* (2017). [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762).
 
 21. W. Fedus, B. Zoph, N. Shazeer, “Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity,” *JMLR* (2022). [https://arxiv.org/abs/2101.03961](https://arxiv.org/abs/2101.03961).
+
+## Weight movement (literature and industrial context)
+
+22. M. Horowitz, “Computing's energy problem (and what we can do about it),” *IEEE International Solid-State Circuits Conference Digest of Technical Papers*, 10–14 (2014). DOI: [10.1109/ISSCC.2014.6757323](https://doi.org/10.1109/ISSCC.2014.6757323). Plenary text: a DRAM access is of order 1–2 nJ; DRAM I/O is above 20 pJ/bit. The circulated 45 nm table (Fig. 1.1.9) lists a 32-bit DRAM read at 640 pJ and an 8-bit multiply at 0.2 pJ. Teaching anchor from 2014, not a 2026 HBM measurement. Added to this list 2026-10-21.
+
+23. Taalas, “The path to ubiquitous AI.” Company essay: [https://taalas.com/the-path-to-ubiquitous-ai/](https://taalas.com/the-path-to-ubiquitous-ai/) (checked 2026-10-21). Industrial context only: a model hard-wired into a chip so inference does not haul weights from off-chip memory; Llama 3.1 8B; SRAM kept for KV-cache and LoRA; of order two months from a received model to hardware. Not a photonic device and not evidence that OLLMU exists.

@@ -1,17 +1,9 @@
 # Attribution / autor pomysłu
 
-Publiczna forma zapisu (obowiązkowa przy użyciu koncepcji):
+Publiczna forma zapisu (obowiązkowa przy użyciu koncepcji; tej formy używają README, obie wersje CONCEPT, licencja i CITATION.cff):
 
 **Anisul Wałsymzerp**
 
-To anagramy odwrócone literowo:
+Licencja ([LICENSE](LICENSE)) **nie ogranicza realizacji** i nie daje prawa wyłącznego do pomysłu. Wymaga zachowania tej publicznej formy autora.
 
-| Pole | Oryginał (niepublikowany tu jako bylinia) | Forma publiczna |
-| --- | --- | --- |
-| Nazwisko | Lusina | Anisul |
-| Imię | Przemysław | Wałsymzerp |
-| Kolejność | imię nazwisko | **nazwisko, imię** → Anisul Wałsymzerp |
-
-Licencja ([LICENSE](LICENSE)) **nie ogranicza realizacji**. Wymaga zachowania tej informacji o autorze, który wskazał pomysł.
-
-English: implementation is unrestricted; the originator credit **Anisul Wałsymzerp** must be preserved.
+English: implementation is unrestricted; the originator credit **Anisul Wałsymzerp** must be preserved. The license does not protect the idea.

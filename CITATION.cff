@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-title: "OLLMU: Optical Large Language Model Unit — optical processing, light cache, off-crystal SiliconCache and context memory"
-message: Preserve originator credit if you use this concept. Implementation is not restricted.
+title: "OLLMU: Optical Large Language Model Unit — frozen weights in a diffractive core, electronics for nonlinearity and routing"
+message: Preserve the public originator credit if you use this concept. Implementation is not restricted. The license does not protect the idea.
 type: software
 license: other
 license-url: https://github.com/ussdeveloper/OLLMU/blob/main/LICENSE
@@ -13,17 +13,20 @@ authors:
 keywords:
   - neuromorphic photonics
   - diffractive neural network
-  - slow light
-  - Kerr nonlinearity
   - optical ROM
+  - weight stationary inference
+  - memory wall
   - bound state in the continuum
   - GaN
 abstract: >
-  Concept paper: processing is optical (diffractive ROM). A light cache in
-  a slower medium holds only a short echo. SiliconCache and context memory
-  sit off-crystal. Large bricks use C-band silica, SOA/EDFA, and 3R
-  regeneration on SiliconCache. Fibre dB/km is not ROM loss. The model is
-  trained before writing. Implementation unrestricted; originator
-  attribution (Anisul Wałsymzerp) must be kept.
-version: 0.1.3
-date-released: "2026-09-07"
+  Public concept paper. In token-by-token decoding the expensive part is
+  moving weights, not the multiply. OLLMU writes a frozen linear operator
+  into a diffractive core so light performs the MAC in transit. Nonlinearity,
+  attention, and the MoE router stay in electronics: a fixed linear medium
+  cannot choose top-k, and each optical matrix pays a light–current–light
+  conversion. The energy section is a threshold under named assumptions, not
+  a measured win over a GPU. A burned snapshot cannot be fine-tuned.
+  Implementation unrestricted; public originator credit (Anisul Wałsymzerp)
+  must be kept. The license does not protect the idea.
+version: 0.2.0
+date-released: "2026-10-21"

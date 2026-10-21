@@ -6,9 +6,7 @@ This repository holds a concept and documentation. It is not a product.
 
    Anyone may implement, manufacture, simulate, modify, commercialise,
    or ignore the architecture described here, in whole or in part, without
-   a fee and without permission. This license does not grant a patent
-   portfolio. It also does not forbid you from seeking your own patents on
-   an independent implementation.
+   a fee and without permission.
 
 2. Attribution of the originator of the idea is mandatory and must be kept.
 
@@ -17,9 +15,7 @@ This repository holds a concept and documentation. It is not a product.
 
         Anisul Wałsymzerp
 
-   That string is the public attribution form: reverse-letter anagrams of
-   the originator's family name and given name, written in that order
-   (nazwisko, then imię). Do not strip, replace, or bury this line.
+   Do not strip, replace, or bury this line.
 
 3. This license is about origin, not about locking down realisation.
 
@@ -30,3 +26,14 @@ This repository holds a concept and documentation. It is not a product.
 
    The text is provided as-is, without warranty of any kind, including
    fitness for a particular purpose. No laboratory device is implied.
+
+5. Attribution is not protection. This text is a public disclosure.
+
+   The license does not grant a patent, a trade secret, or an exclusive
+   right in the idea. Credit is not a monopoly. Under the European Patent
+   Convention an invention is not new if it was made available to the public
+   before filing, by any means (Article 54). Publication by the originator
+   counts. Matter this repository describes is, for that reason, a
+   disclosure. A patent can still be sought only on subject matter this
+   text does not disclose, and only if that subject matter is otherwise
+   patentable. This clause is a notice, not legal advice.
